@@ -1,6 +1,7 @@
 package v1alpha1
 
 import (
+	"github.com/redhat-cop/operator-utils/pkg/util/apis"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -46,9 +47,22 @@ type XrootdConfigSpec struct {
 }
 
 // XrootdStatus defines the observed state of Xrootd
+// +k8s:openapi-gen=true
 type XrootdStatus struct {
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
+
+	apis.EnforcingReconcileStatus `json:",inline"`
+}
+
+// GetEnforcingReconcileStatus provides the EnforcingReconcileStatus
+func (xrootd *Xrootd) GetEnforcingReconcileStatus() apis.EnforcingReconcileStatus {
+	return xrootd.Status.EnforcingReconcileStatus
+}
+
+// SetEnforcingReconcileStatus sets the EnforcingReconcileStatus
+func (xrootd *Xrootd) SetEnforcingReconcileStatus(reconcileStatus apis.EnforcingReconcileStatus) {
+	xrootd.Status.EnforcingReconcileStatus = reconcileStatus
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
