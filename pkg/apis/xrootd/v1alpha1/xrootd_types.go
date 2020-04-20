@@ -1,0 +1,78 @@
+package v1alpha1
+
+import (
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
+// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
+
+// XrootdSpec defines the desired state of Xrootd
+type XrootdSpec struct {
+	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
+	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
+
+	Storage    XrootdStorageSpec    `json:"storage,omitempty"`
+	Worker     XrootdWorkerSpec     `json:"worker,omitempty"`
+	Redirector XrootdRedirectorSpec `json:"redirector,omitempty"`
+	Config     XrootdConfigSpec     `json:"config,omitempty"`
+}
+
+// XrootdStorageSpec defines the storage spec of Xrootd workers
+type XrootdStorageSpec struct {
+	StorageClass    string `json:"storageClass,omitempty"`
+	StorageCapacity string `json:"storageCapacity,omitempty"`
+}
+
+// XrootdWorkerSpec defines the desired state of Xrootd workers
+type XrootdWorkerSpec struct {
+	// +kubebuilder:validation:Minimum=1
+	Replicas int32 `json:"replicas,omitempty"`
+	// Image must have a tag
+	// +kubebuilder:validation:Pattern=".+:.+"
+	Image string `json:"image,omitempty"`
+}
+
+// XrootdRedirectorSpec defines the desired state of Xrootd redirectors
+type XrootdRedirectorSpec struct {
+	// +kubebuilder:validation:Minimum=1
+	Replicas int32 `json:"replicas,omitempty"`
+	// Image must have a tag
+	// +kubebuilder:validation:Pattern=".+:.+"
+	Image string `json:"image,omitempty"`
+}
+
+// XrootdConfigSpec defines the config spec used to generate xrootd.cf
+type XrootdConfigSpec struct {
+}
+
+// XrootdStatus defines the observed state of Xrootd
+type XrootdStatus struct {
+	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
+	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
+}
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
+// Xrootd is the Schema for the xrootds API
+// +kubebuilder:subresource:status
+// +kubebuilder:resource:path=xrootds,scope=Namespaced
+type Xrootd struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+
+	Spec   XrootdSpec   `json:"spec,omitempty"`
+	Status XrootdStatus `json:"status,omitempty"`
+}
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
+// XrootdList contains a list of Xrootd
+type XrootdList struct {
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata,omitempty"`
+	Items           []Xrootd `json:"items"`
+}
+
+func init() {
+	SchemeBuilder.Register(&Xrootd{}, &XrootdList{})
+}
