@@ -4,6 +4,8 @@ import (
 	"context"
 
 	xrootdv1alpha1 "github.com/shivanshs9/xrootd-operator/pkg/apis/xrootd/v1alpha1"
+	"github.com/shivanshs9/xrootd-operator/pkg/resources"
+	"github.com/shivanshs9/xrootd-operator/pkg/utils"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -14,6 +16,7 @@ import (
 
 	oputil "github.com/redhat-cop/operator-utils/pkg/util"
 	lockcontroller "github.com/redhat-cop/operator-utils/pkg/util/lockedresourcecontroller"
+	"github.com/redhat-cop/operator-utils/pkg/util/lockedresourcecontroller/lockedresource"
 )
 
 var log = logf.Log.WithName("controller_xrootd")
@@ -76,8 +79,6 @@ type ReconcileXrootd struct {
 
 // Reconcile reads that state of the cluster for a Xrootd object and makes changes based on the state read
 // and what is in the Xrootd.Spec
-// TODO(user): Modify this Reconcile function to implement your Controller logic.  This example creates
-// a Pod as an example
 // Note:
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
@@ -127,14 +128,26 @@ func (r *ReconcileXrootd) Reconcile(request reconcile.Request) (reconcile.Result
 		return reconcile.Result{}, nil
 	}
 
-	if err = r.manageOperatorLogic(instance); err != nil {
+	if err = r.syncResources(instance); err != nil {
 		return r.ManageError(instance, err)
 	}
 
 	return r.ManageSuccess(instance)
 }
 
-func (r *ReconcileXrootd) manageOperatorLogic(xrootd *xrootdv1alpha1.Xrootd) error {
+func (r *ReconcileXrootd) syncResources(xrootd *xrootdv1alpha1.Xrootd) error {
+	resourcesList := []resources.Resource{
+		resources.NewXrootdConfigMapResource(xrootd),
+	}
+	transformer := func(res resources.Resource) lockedresource.LockedResource {
+		result, err := res.ToLockedResource()
+		if err != nil {
+			// TODO: how to return error in outer function scope?
+		}
+		return *result
+	}
+	lockedresources := utils.Map(transformer, resourcesList).([]lockedresource.LockedResource)
+	r.UpdateLockedResources(xrootd, lockedresources)
 	return nil
 }
 
