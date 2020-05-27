@@ -1,0 +1,64 @@
+# PRODUCTION XROOTD INSTANCE CONFIG
+# Unified configuration for xrootd/cmsd for both manager and server instances
+# "if"-block separates manager-only and server-only configuration.
+
+
+############################
+# if: manager node
+############################
+if named manager
+
+    all.export / r/w
+
+    all.role manager
+    all.manager redirector_hostname 3122
+
+    xrd.network nodnr
+    xrd.protocol xrootd *
+    xrd.port 1096
+    xrd.timeout idle 48h
+
+    # enable third party copies in this machines
+    ofs.tpc autorm pgm /usr/bin/xrdcp
+
+    cms.delay servers 1 startup 10 lookup 1 qdl 1
+
+    cms.sched cpu 10 io 10 space 80
+
+    # Specify how servers are selected for file creation
+    cms.space min 1% 1g 5% 5g
+
+############################
+# else: server nodes
+############################
+else
+    all.export / r/w nocheck norcreate
+
+    all.role server
+
+    all.manager redirector_hostname 3122
+
+    xrd.protocol xrootd *
+    xrd.port 1095
+    xrootd.async off
+    xrd.sched mint 32 maxt 8192 avlt 512 idle 780
+    xrd.timeout idle 48h
+
+    # Enable window scaling on the monostream connection
+    xrd.network buffsz 0 nodnr
+
+    sec.protocol unix
+
+    # enable third party copies in this machines
+    ofs.tpc autorm pgm /usr/bin/xrdcp
+
+    cms.delay servers 1 startup 10 lookup 1 qdl 1
+
+    cms.sched cpu 10 io 10 space 80
+    cms.perf int 5m pgm /usr/share/xrootd/utils/XrdOlbMonPerf 300
+    cms.space linger 0 recalc 5 min 100g 100g
+
+    oss.defaults nomig nodread stage nocheck norcreate
+    oss.alloc 512M 2 0
+    oss.fdlimit * max
+fi
