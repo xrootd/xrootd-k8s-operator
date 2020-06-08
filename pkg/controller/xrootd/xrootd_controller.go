@@ -5,7 +5,6 @@ import (
 
 	xrootdv1alpha1 "github.com/shivanshs9/xrootd-operator/pkg/apis/xrootd/v1alpha1"
 	"github.com/shivanshs9/xrootd-operator/pkg/resources"
-	"github.com/shivanshs9/xrootd-operator/pkg/utils"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -16,7 +15,6 @@ import (
 
 	oputil "github.com/redhat-cop/operator-utils/pkg/util"
 	lockcontroller "github.com/redhat-cop/operator-utils/pkg/util/lockedresourcecontroller"
-	"github.com/redhat-cop/operator-utils/pkg/util/lockedresourcecontroller/lockedresource"
 )
 
 var log = logf.Log.WithName("controller_xrootd")
@@ -139,14 +137,10 @@ func (r *ReconcileXrootd) syncResources(xrootd *xrootdv1alpha1.Xrootd) error {
 	resourcesList := []resources.Resource{
 		resources.NewXrootdConfigMapResource(xrootd),
 	}
-	transformer := func(res resources.Resource) lockedresource.LockedResource {
-		result, err := res.ToLockedResource()
-		if err != nil {
-			// TODO: how to return error in outer function scope?
-		}
-		return *result
+	lockedresources, err := resources.Resources(resourcesList).ToLockedResources()
+	if err != nil {
+		return err
 	}
-	lockedresources := utils.Map(transformer, resourcesList).([]lockedresource.LockedResource)
 	r.UpdateLockedResources(xrootd, lockedresources)
 	return nil
 }
