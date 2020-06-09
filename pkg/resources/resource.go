@@ -2,7 +2,7 @@ package resources
 
 import (
 	"github.com/redhat-cop/operator-utils/pkg/util/lockedresourcecontroller/lockedresource"
-	"github.com/shivanshs9/xrootd-operator/pkg/utils"
+	"github.com/shivanshs9/ty/fun"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -27,6 +27,6 @@ func (resources Resources) ToLockedResources() ([]lockedresource.LockedResource,
 		result, err := resource.ToLockedResource()
 		return *result, err
 	}
-	result, err := utils.MapWithError(tranformer, resources)
+	result, err := fun.MapWithError(tranformer, resources)
 	return result.([]lockedresource.LockedResource), err
 }
