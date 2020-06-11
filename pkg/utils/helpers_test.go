@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/shivanshs9/xrootd-operator/pkg/utils/constant"
+	. "github.com/shivanshs9/xrootd-operator/pkg/utils/types"
 )
 
 func AssertDeep(t *testing.T, expected, actual interface{}) {
@@ -14,7 +14,7 @@ func AssertDeep(t *testing.T, expected, actual interface{}) {
 }
 
 func TestMergeLabels(t *testing.T) {
-	l1 := constant.Labels(map[string]string{"app": "l1"})
-	l2 := constant.Labels(map[string]string{"instance": "l2"})
-	AssertDeep(t, constant.Labels(map[string]string{"app": "l1", "instance": "l2"}), MergeLabels(l1, l2))
+	l1 := Labels(map[string]string{"app": "l1"})
+	l2 := Labels(map[string]string{"instance": "l2"})
+	AssertDeep(t, Labels(map[string]string{"app": "l1", "instance": "l2"}), MergeLabels(l1, l2))
 }

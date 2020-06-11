@@ -5,6 +5,7 @@ import (
 
 	xrootdv1alpha1 "github.com/shivanshs9/xrootd-operator/pkg/apis/xrootd/v1alpha1"
 	"github.com/shivanshs9/xrootd-operator/pkg/resources"
+	"github.com/shivanshs9/xrootd-operator/pkg/utils/constant"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -145,4 +146,4 @@ func (r *ReconcileXrootd) syncResources(xrootd *xrootdv1alpha1.Xrootd) error {
 	return nil
 }
 
-const controllerName = "xrootd-controller"
+const controllerName = constant.ControllerName
