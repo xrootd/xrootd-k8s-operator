@@ -136,7 +136,8 @@ func (r *ReconcileXrootd) Reconcile(request reconcile.Request) (reconcile.Result
 
 func (r *ReconcileXrootd) syncResources(xrootd *xrootdv1alpha1.Xrootd) error {
 	resourcesList := []resources.Resource{
-		resources.NewXrootdConfigMapResource(xrootd),
+		resources.NewXrootdRedirectorStatefulSetResource(xrootd),
+		resources.NewXrootdRedirectorConfigMapResource(xrootd),
 	}
 	lockedresources, err := resources.Resources(resourcesList).ToLockedResources()
 	if err != nil {

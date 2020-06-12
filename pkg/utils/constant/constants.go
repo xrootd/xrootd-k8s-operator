@@ -10,12 +10,14 @@ const (
 )
 
 const (
-	ConfigMap KindName = "cfg"
-	Service   KindName = "svc"
+	ConfigMap   KindName = "cfg"
+	Service     KindName = "svc"
+	StatefulSet KindName = "sts"
 )
 
 const (
 	Xrootd ContainerName = "xrootd"
+	Cmsd   ContainerName = "cmsd"
 )
 
 var ControllerLabels = map[string]string{

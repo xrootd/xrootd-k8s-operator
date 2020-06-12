@@ -13,6 +13,8 @@ import (
 type XrootdTemplateData struct{}
 
 func scanDir(root string, tmplData interface{}) map[string]string {
+	files := map[string]string{}
+	return files
 }
 
 func GenerateContainerConfigMap(
