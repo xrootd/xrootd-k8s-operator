@@ -1,0 +1,8 @@
+apiVersion: xrootd.org/v1alpha1
+kind: Xrootd
+metadata:
+  name: base-xrootd
+spec:
+  redirector:
+    replicas: 1
+    image: "busybox:latest"
