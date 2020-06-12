@@ -6,6 +6,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// InstanceVolumeSet contains a set of v1.Volume for a given ObjectMeta
 type InstanceVolumeSet struct {
 	volumes types.Volumes
 	meta    metav1.ObjectMeta

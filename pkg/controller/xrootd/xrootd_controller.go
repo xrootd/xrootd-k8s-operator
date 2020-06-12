@@ -135,11 +135,10 @@ func (r *ReconcileXrootd) Reconcile(request reconcile.Request) (reconcile.Result
 }
 
 func (r *ReconcileXrootd) syncResources(xrootd *xrootdv1alpha1.Xrootd) error {
-	resourcesList := []resources.Resource{
-		resources.NewXrootdRedirectorStatefulSetResource(xrootd),
-		resources.NewXrootdRedirectorConfigMapResource(xrootd),
-	}
-	lockedresources, err := resources.Resources(resourcesList).ToLockedResources()
+	irs := resources.NewInstanceResourceSet(xrootd)
+	irs.AddXrootdRedirectorStatefulSetResource()
+	irs.AddXrootdRedirectorConfigMapResource()
+	lockedresources, err := irs.ToLockedResources()
 	if err != nil {
 		return err
 	}

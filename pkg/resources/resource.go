@@ -3,6 +3,7 @@ package resources
 import (
 	"github.com/redhat-cop/operator-utils/pkg/util/lockedresourcecontroller/lockedresource"
 	"github.com/shivanshs9/ty/fun"
+	"github.com/shivanshs9/xrootd-operator/pkg/apis/xrootd/v1alpha1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -12,6 +13,19 @@ type Resource struct {
 }
 
 type Resources []Resource
+
+// InstanceResourceSet contains Resources for a given Xrootd instance
+type InstanceResourceSet struct {
+	resources Resources
+	xrootd    *v1alpha1.Xrootd
+}
+
+func NewInstanceResourceSet(xrootd *v1alpha1.Xrootd) *InstanceResourceSet {
+	return &InstanceResourceSet{
+		resources: Resources(make([]Resource, 5)),
+		xrootd:    xrootd,
+	}
+}
 
 func (res *Resource) ToLockedResource() (*lockedresource.LockedResource, error) {
 	mapObj, err := runtime.DefaultUnstructuredConverter.ToUnstructured(res.Object)
@@ -29,4 +43,12 @@ func (resources Resources) ToLockedResources() ([]lockedresource.LockedResource,
 	}
 	result, err := fun.MapWithError(tranformer, resources)
 	return result.([]lockedresource.LockedResource), err
+}
+
+func (irs InstanceResourceSet) ToLockedResources() ([]lockedresource.LockedResource, error) {
+	return irs.resources.ToLockedResources()
+}
+
+func (irs *InstanceResourceSet) addResource(newResources ...Resource) {
+	irs.resources = append(irs.resources, newResources...)
 }
