@@ -16,9 +16,9 @@ spec:
       containers:
         - name: xrootd-operator
           # Replace this with the built image name
-          image: REPLACE_IMAGE
+          image: xrootd/xrootd-operator:0.0.0-5ff7abb
           command:
-          - xrootd-operator
+            - xrootd-operator
           imagePullPolicy: IfNotPresent
           env:
             - name: WATCH_NAMESPACE
