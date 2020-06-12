@@ -6,7 +6,10 @@ import (
 	"github.com/shivanshs9/xrootd-operator/pkg/apis/xrootd/v1alpha1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
+
+var log = logf.Log.WithName("resource")
 
 type Resource struct {
 	Object runtime.Object
@@ -22,12 +25,12 @@ type InstanceResourceSet struct {
 
 func NewInstanceResourceSet(xrootd *v1alpha1.Xrootd) *InstanceResourceSet {
 	return &InstanceResourceSet{
-		resources: Resources(make([]Resource, 5)),
+		resources: Resources(make([]Resource, 0)),
 		xrootd:    xrootd,
 	}
 }
 
-func (res *Resource) ToLockedResource() (*lockedresource.LockedResource, error) {
+func (res Resource) ToLockedResource() (*lockedresource.LockedResource, error) {
 	mapObj, err := runtime.DefaultUnstructuredConverter.ToUnstructured(res.Object)
 	if err != nil {
 		return nil, err
@@ -50,5 +53,6 @@ func (irs InstanceResourceSet) ToLockedResources() ([]lockedresource.LockedResou
 }
 
 func (irs *InstanceResourceSet) addResource(newResources ...Resource) {
+	log.Info("Adding resources...", "resources", newResources)
 	irs.resources = append(irs.resources, newResources...)
 }
