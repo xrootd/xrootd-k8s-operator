@@ -4,6 +4,8 @@ import (
 	"github.com/redhat-cop/operator-utils/pkg/util/lockedresourcecontroller/lockedresource"
 	"github.com/shivanshs9/ty/fun"
 	"github.com/shivanshs9/xrootd-operator/pkg/apis/xrootd/v1alpha1"
+	appsv1 "k8s.io/api/apps/v1"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -31,6 +33,11 @@ func NewInstanceResourceSet(xrootd *v1alpha1.Xrootd) *InstanceResourceSet {
 }
 
 func (res Resource) ToLockedResource() (*lockedresource.LockedResource, error) {
+	log.Info("Converting Resource to LockedResource", "Resource", res)
+	err := res.fillGroupVersionKind()
+	if err != nil {
+		return nil, err
+	}
 	mapObj, err := runtime.DefaultUnstructuredConverter.ToUnstructured(res.Object)
 	if err != nil {
 		return nil, err
@@ -55,4 +62,21 @@ func (irs InstanceResourceSet) ToLockedResources() ([]lockedresource.LockedResou
 func (irs *InstanceResourceSet) addResource(newResources ...Resource) {
 	log.Info("Adding resources...", "resources", newResources)
 	irs.resources = append(irs.resources, newResources...)
+}
+
+func (res *Resource) fillGroupVersionKind() error {
+	scheme := runtime.NewScheme()
+	err := v1.AddToScheme(scheme)
+	err = appsv1.AddToScheme(scheme)
+	if err != nil {
+		return err
+	}
+	gvks, _, err := scheme.ObjectKinds(res.Object)
+	log.Info("Finding ObjectKinds", "ObjectKinds", gvks)
+	if err != nil {
+		return err
+	}
+	res.Object.GetObjectKind().SetGroupVersionKind(gvks[0])
+	log.Info("SetGroupVersionKind to Object", "GroupVersionKind", res.Object.GetObjectKind().GroupVersionKind())
+	return nil
 }
