@@ -12,6 +12,10 @@ import (
 
 type XrootdTemplateData struct{}
 
+func getConfigMapName(controllerName string, container types.ContainerName, suffix string) string {
+	return utils.SuffixName(controllerName, string(container), suffix)
+}
+
 func scanDir(root string, tmplData interface{}) map[string]string {
 	files := map[string]string{}
 	return files
@@ -22,7 +26,7 @@ func GenerateContainerConfigMap(
 	compLabels types.Labels, container types.ContainerName,
 	subpath string,
 ) v1.ConfigMap {
-	name := utils.SuffixName(string(objectName), subpath)
+	name := getConfigMapName(xrootd.Name, container, subpath)
 	labels := compLabels
 	tmplData := XrootdTemplateData{}
 	rootDir := filepath.Join("/", "configmap", string(container), subpath)

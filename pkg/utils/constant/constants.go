@@ -23,3 +23,10 @@ const (
 var ControllerLabels = map[string]string{
 	"app.kubernetes.io/managed-by": ControllerName,
 }
+
+const (
+	XrootdPort ContainerPort = 1094
+	CmsdPort   ContainerPort = 2131
+)
+
+var ContainerCommand = []string{"/config-run/start.sh"}

@@ -9,28 +9,41 @@ import (
 
 func getXrootdContainersAndVolume(xrootd *v1alpha1.Xrootd, component types.ComponentName) (types.Containers, types.Volumes) {
 	spec := xrootd.Spec
-	volumeMounts := getXrootdVolumeMounts(component)
+	volumeSet := newInstanceVolumeSet(xrootd.ObjectMeta)
+	volumeSet.addEtcConfigVolume(constant.Xrootd)
+	volumeSet.addRunConfigVolume(constant.Xrootd)
 	var image string
 	if component == constant.XrootdRedirector {
 		image = spec.Redirector.Image
 	} else {
 		image = spec.Worker.Image
 	}
+	volumeMounts := volumeSet.volumeMounts.ToSlice()
 	containers := []v1.Container{
 		{
-			Name:         string(constant.Cmsd),
-			Image:        image,
-			VolumeMounts: volumeMounts,
-			Command:      []string{"echo hi"},
+			Name:            string(constant.Cmsd),
+			Image:           image,
+			ImagePullPolicy: v1.PullIfNotPresent,
+			VolumeMounts:    volumeMounts,
+			Command:         constant.ContainerCommand,
+			Args:            []string{"-s", "cmsd"},
 		},
 		{
-			Name:         string(constant.Xrootd),
-			Image:        image,
-			VolumeMounts: volumeMounts,
-			Command:      []string{"echo hi"},
+			Name:            string(constant.Xrootd),
+			Image:           image,
+			ImagePullPolicy: v1.PullIfNotPresent,
+			VolumeMounts:    volumeMounts,
+			Command:         constant.ContainerCommand,
+			Args:            []string{"-s", "xrootd"},
+			Ports: []v1.ContainerPort{
+				{
+					Name:          string(constant.Xrootd),
+					ContainerPort: int32(constant.XrootdPort),
+					Protocol:      v1.ProtocolTCP,
+				},
+			},
 		},
 	}
 
-	volumeSet := newInstanceVolumeSet(xrootd.ObjectMeta)
 	return containers, volumeSet.volumes
 }
