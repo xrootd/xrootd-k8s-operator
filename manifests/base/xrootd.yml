@@ -5,4 +5,4 @@ metadata:
 spec:
   redirector:
     replicas: 1
-    image: "busybox:latest"
+    image: "xrootd:latest"
