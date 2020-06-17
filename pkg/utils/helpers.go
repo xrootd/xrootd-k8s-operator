@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"fmt"
+	"strings"
 
 	"github.com/shivanshs9/ty/fun"
 	"github.com/shivanshs9/xrootd-operator/pkg/utils/constant"
@@ -12,12 +12,12 @@ func MergeLabels(labels ...Labels) Labels {
 	return Labels(fun.MergeMaps(labels).(map[string]string))
 }
 
-func GetObjectName(component ComponentName, kind KindName) ObjectName {
-	return ObjectName(SuffixName(string(kind), string(component)))
+func GetObjectName(component ComponentName, controllerName string) ObjectName {
+	return ObjectName(SuffixName(controllerName, string(component)))
 }
 
-func SuffixName(name string, suffix string) string {
-	return fmt.Sprintf("%s-%s", name, suffix)
+func SuffixName(name string, suffix string, suffixes ...string) string {
+	return strings.Join(append([]string{name, suffix}, suffixes...), "-")
 }
 
 func GetComponentLabels(component ComponentName, controllerName string) Labels {

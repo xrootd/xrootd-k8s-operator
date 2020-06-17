@@ -9,7 +9,7 @@ import (
 func (irs *InstanceResourceSet) AddXrootdRedirectorStatefulSetResource() {
 	xrootd := irs.xrootd
 	component := constant.XrootdRedirector
-	objectName := utils.GetObjectName(component, constant.StatefulSet)
+	objectName := utils.GetObjectName(component, xrootd.Name)
 	labels := utils.GetComponentLabels(component, xrootd.Name)
 	statefulset := objects.GenerateXrootdStatefulSet(xrootd, objectName, labels, component)
 	irs.addResource(Resource{Object: &statefulset})
