@@ -33,7 +33,6 @@ func NewInstanceResourceSet(xrootd *v1alpha1.Xrootd) *InstanceResourceSet {
 }
 
 func (res Resource) ToLockedResource() (*lockedresource.LockedResource, error) {
-	log.Info("Converting Resource to LockedResource", "Resource", res)
 	err := res.fillGroupVersionKind()
 	if err != nil {
 		return nil, err
@@ -43,7 +42,7 @@ func (res Resource) ToLockedResource() (*lockedresource.LockedResource, error) {
 		return nil, err
 	}
 	unstructuredObj := unstructured.Unstructured{Object: mapObj}
-	return &lockedresource.LockedResource{Unstructured: unstructuredObj}, nil
+	return &lockedresource.LockedResource{Unstructured: unstructuredObj, ExcludedPaths: []string{".metadata", ".status"}}, nil
 }
 
 func (resources Resources) ToLockedResources() ([]lockedresource.LockedResource, error) {
@@ -60,7 +59,6 @@ func (irs InstanceResourceSet) ToLockedResources() ([]lockedresource.LockedResou
 }
 
 func (irs *InstanceResourceSet) addResource(newResources ...Resource) {
-	log.Info("Adding resources...", "resources", newResources)
 	irs.resources = append(irs.resources, newResources...)
 }
 

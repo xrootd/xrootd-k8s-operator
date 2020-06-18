@@ -142,7 +142,10 @@ func (r *ReconcileXrootd) syncResources(xrootd *xrootdv1alpha1.Xrootd) error {
 	if err != nil {
 		return err
 	}
-	r.UpdateLockedResources(xrootd, lockedresources)
+	err = r.UpdateLockedResources(xrootd, lockedresources)
+	if err != nil {
+		log.Error(err, "unable to update locked resources", "locked resources", lockedresources)
+	}
 	return nil
 }
 
