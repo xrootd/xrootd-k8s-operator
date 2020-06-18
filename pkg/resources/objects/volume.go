@@ -26,8 +26,16 @@ func newInstanceVolumeSet(meta metav1.ObjectMeta) *InstanceVolumeSet {
 	}
 }
 
-func (ivs *InstanceVolumeSet) addConfigVolume(container types.ContainerName, subPath string, mountPath string, mode int32) {
-	configmap := getConfigMapName(ivs.meta.Name, container, subPath)
+func (ivs *InstanceVolumeSet) addVolumes(vols ...v1.Volume) {
+	ivs.volumes = ivs.volumes.Add(vols...)
+}
+
+func (ivs *InstanceVolumeSet) addVolumeMounts(vols ...v1.VolumeMount) {
+	ivs.volumeMounts = ivs.volumeMounts.Add(vols...)
+}
+
+func (ivs *InstanceVolumeSet) addConfigVolume(config types.ConfigName, subPath string, mountPath string, mode int32) {
+	configmap := getConfigMapName(utils.GetObjectName(config, ivs.meta.Name), subPath)
 	volumeName := getConfigVolumeName(configmap)
 	volume := v1.Volume{
 		Name: volumeName,
@@ -46,14 +54,14 @@ func (ivs *InstanceVolumeSet) addConfigVolume(container types.ContainerName, sub
 	if mode != 0 {
 		volume.VolumeSource.ConfigMap.DefaultMode = &mode
 	}
-	ivs.volumes.Add(volume)
-	ivs.volumeMounts.Add(volumeMount)
+	ivs.addVolumes(volume)
+	ivs.addVolumeMounts(volumeMount)
 }
 
-func (ivs *InstanceVolumeSet) addEtcConfigVolume(container types.ContainerName) {
-	ivs.addConfigVolume(container, "etc", "/config-etc", 0)
+func (ivs *InstanceVolumeSet) addEtcConfigVolume(config types.ConfigName) {
+	ivs.addConfigVolume(config, "etc", "/config-etc", 0)
 }
 
-func (ivs *InstanceVolumeSet) addRunConfigVolume(container types.ContainerName) {
-	ivs.addConfigVolume(container, "run", "/config-run", 0555)
+func (ivs *InstanceVolumeSet) addRunConfigVolume(config types.ConfigName) {
+	ivs.addConfigVolume(config, "run", "/config-run", 0555)
 }

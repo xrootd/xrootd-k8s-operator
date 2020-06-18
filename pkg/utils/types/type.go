@@ -6,6 +6,8 @@ type Labels = map[string]string
 
 type ComponentName string
 
+type ConfigName = ComponentName
+
 type ContainerName string
 
 type KindName string

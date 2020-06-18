@@ -8,8 +8,9 @@ import (
 
 func (irs *InstanceResourceSet) AddXrootdRedirectorConfigMapResource() {
 	xrootd := irs.xrootd
-	objectName := utils.GetObjectName(constant.XrootdRedirector, xrootd.Name)
+	objectName := utils.GetObjectName(constant.CfgXrootd, xrootd.Name)
 	labels := utils.GetComponentLabels(constant.XrootdRedirector, xrootd.Name)
-	configmap := objects.GenerateContainerConfigMap(xrootd, objectName, labels, constant.Xrootd, "etc")
-	irs.addResource(Resource{Object: &configmap})
+	etcConfigmap := objects.GenerateContainerConfigMap(xrootd, objectName, labels, constant.CfgXrootd, "etc")
+	runConfigmap := objects.GenerateContainerConfigMap(xrootd, objectName, labels, constant.CfgXrootd, "run")
+	irs.addResource(Resource{Object: &etcConfigmap}, Resource{Object: &runConfigmap})
 }

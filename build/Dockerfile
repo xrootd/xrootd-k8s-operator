@@ -6,6 +6,7 @@ ENV OPERATOR=/usr/local/bin/xrootd-operator \
 
 # install operator binary
 COPY build/_output/bin/xrootd-operator ${OPERATOR}
+COPY configmaps /configmaps
 
 COPY build/bin /usr/local/bin
 RUN  /usr/local/bin/user_setup

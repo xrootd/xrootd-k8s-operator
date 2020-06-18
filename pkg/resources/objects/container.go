@@ -10,8 +10,8 @@ import (
 func getXrootdContainersAndVolume(xrootd *v1alpha1.Xrootd, component types.ComponentName) (types.Containers, types.Volumes) {
 	spec := xrootd.Spec
 	volumeSet := newInstanceVolumeSet(xrootd.ObjectMeta)
-	volumeSet.addEtcConfigVolume(constant.Xrootd)
-	volumeSet.addRunConfigVolume(constant.Xrootd)
+	volumeSet.addEtcConfigVolume(constant.CfgXrootd)
+	volumeSet.addRunConfigVolume(constant.CfgXrootd)
 	var image string
 	if component == constant.XrootdRedirector {
 		image = spec.Redirector.Image

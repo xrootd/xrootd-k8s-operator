@@ -10,6 +10,10 @@ const (
 )
 
 const (
+	CfgXrootd ConfigName = "xrootd"
+)
+
+const (
 	ConfigMap   KindName = "cfg"
 	Service     KindName = "svc"
 	StatefulSet KindName = "sts"
