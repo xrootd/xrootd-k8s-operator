@@ -56,14 +56,14 @@ type XrootdStatus struct {
 }
 
 // GetEnforcingReconcileStatus provides the EnforcingReconcileStatus
-func (xrootd *Xrootd) GetEnforcingReconcileStatus() apis.EnforcingReconcileStatus {
-	return xrootd.Status.EnforcingReconcileStatus
-}
+// func (xrootd *Xrootd) GetEnforcingReconcileStatus() apis.EnforcingReconcileStatus {
+// 	return xrootd.Status.EnforcingReconcileStatus
+// }
 
-// SetEnforcingReconcileStatus sets the EnforcingReconcileStatus
-func (xrootd *Xrootd) SetEnforcingReconcileStatus(reconcileStatus apis.EnforcingReconcileStatus) {
-	xrootd.Status.EnforcingReconcileStatus = reconcileStatus
-}
+// // SetEnforcingReconcileStatus sets the EnforcingReconcileStatus
+// func (xrootd *Xrootd) SetEnforcingReconcileStatus(reconcileStatus apis.EnforcingReconcileStatus) {
+// 	xrootd.Status.EnforcingReconcileStatus = reconcileStatus
+// }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 

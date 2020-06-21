@@ -1,6 +1,7 @@
 package resources
 
 import (
+	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/redhat-cop/operator-utils/pkg/util/lockedresourcecontroller/lockedresource"
 	"github.com/shivanshs9/ty/fun"
 	"github.com/shivanshs9/xrootd-operator/pkg/apis/xrootd/v1alpha1"
@@ -8,13 +9,14 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 var log = logf.Log.WithName("resource")
 
 type Resource struct {
-	Object runtime.Object
+	Object controllerutil.Object
 }
 
 type Resources []Resource
@@ -30,6 +32,10 @@ func NewInstanceResourceSet(xrootd *v1alpha1.Xrootd) *InstanceResourceSet {
 		resources: Resources(make([]Resource, 0)),
 		xrootd:    xrootd,
 	}
+}
+
+func (irs InstanceResourceSet) GetResources() Resources {
+	return irs.resources
 }
 
 func (res Resource) ToLockedResource() (*lockedresource.LockedResource, error) {
@@ -52,6 +58,26 @@ func (resources Resources) ToLockedResources() ([]lockedresource.LockedResource,
 	}
 	result, err := fun.MapWithError(tranformer, resources)
 	return result.([]lockedresource.LockedResource), err
+}
+
+func (res Resources) ToSlice() []Resource {
+	return []Resource(res)
+}
+
+func (res Resources) GetObjects() []controllerutil.Object {
+	objects := make([]controllerutil.Object, 0)
+	for _, item := range res {
+		objects = append(objects, item.Object)
+	}
+	return objects
+}
+
+func (res Resources) GetK8SResources() []resource.KubernetesResource {
+	objects := make([]resource.KubernetesResource, 0)
+	for _, item := range res {
+		objects = append(objects, item.Object)
+	}
+	return objects
 }
 
 func (irs InstanceResourceSet) ToLockedResources() ([]lockedresource.LockedResource, error) {

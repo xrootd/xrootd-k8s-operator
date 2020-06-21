@@ -2,10 +2,19 @@ package xrootd
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/RHsyseng/operator-utils/pkg/resource"
+	"github.com/RHsyseng/operator-utils/pkg/resource/read"
+	"github.com/RHsyseng/operator-utils/pkg/resource/write"
+	oputil "github.com/redhat-cop/operator-utils/pkg/util"
+	lockcontroller "github.com/redhat-cop/operator-utils/pkg/util/lockedresourcecontroller"
 	xrootdv1alpha1 "github.com/shivanshs9/xrootd-operator/pkg/apis/xrootd/v1alpha1"
 	"github.com/shivanshs9/xrootd-operator/pkg/resources"
+	"github.com/shivanshs9/xrootd-operator/pkg/utils/comparator"
 	"github.com/shivanshs9/xrootd-operator/pkg/utils/constant"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -13,9 +22,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
-
-	oputil "github.com/redhat-cop/operator-utils/pkg/util"
-	lockcontroller "github.com/redhat-cop/operator-utils/pkg/util/lockedresourcecontroller"
 )
 
 var log = logf.Log.WithName("controller_xrootd")
@@ -114,6 +120,7 @@ func (r *ReconcileXrootd) Reconcile(request reconcile.Request) (reconcile.Result
 	}
 
 	if oputil.IsBeingDeleted(instance) {
+		log.Info("Deleting instance...", "instance", instance)
 		if !oputil.HasFinalizer(instance, controllerName) {
 			return reconcile.Result{}, nil
 		}
@@ -135,18 +142,58 @@ func (r *ReconcileXrootd) Reconcile(request reconcile.Request) (reconcile.Result
 }
 
 func (r *ReconcileXrootd) syncResources(xrootd *xrootdv1alpha1.Xrootd) error {
+	log := log.WithName("syncResources")
+
 	irs := resources.NewInstanceResourceSet(xrootd)
 	irs.AddXrootdRedirectorStatefulSetResource()
 	irs.AddXrootdRedirectorConfigMapResource()
-	lockedresources, err := irs.ToLockedResources()
+	deployed, err := r.getDeployedResources(xrootd)
 	if err != nil {
 		return err
 	}
-	err = r.UpdateLockedResources(xrootd, lockedresources)
-	if err != nil {
-		log.Error(err, "unable to update locked resources", "locked resources", lockedresources)
+	writer := write.New(r.GetClient()).WithOwnerController(xrootd, r.GetScheme())
+	delta := comparator.GetComparator().CompareArrays(deployed, irs.GetResources().GetK8SResources())
+	if !delta.HasChanges() {
+		log.Info("No changes detected")
 	}
+	log.Info(fmt.Sprintf("Will create %d, update %d, and delete %d instances", len(delta.Added), len(delta.Updated), len(delta.Removed)))
+	added, err := writer.AddResources(delta.Added)
+	if err != nil {
+		return err
+	}
+	updated, err := writer.UpdateResources(deployed, delta.Updated)
+	if err != nil {
+		return err
+	}
+	removed, err := writer.RemoveResources(delta.Removed)
+	if err != nil {
+		return err
+	}
+	if added || updated || removed {
+		log.Info("Executed changes", "added", added, "updated", updated, "removed", removed)
+	}
+	// lockedresources, err := irs.ToLockedResources()
+	// err = r.UpdateLockedResources(xrootd, lockedresources)
+	// if err != nil {
+	// 	log.Error(err, "unable to update locked resources", "locked resources", lockedresources)
+	// }
 	return nil
+}
+
+func (r *ReconcileXrootd) getDeployedResources(xrootd *xrootdv1alpha1.Xrootd) ([]resource.KubernetesResource, error) {
+	reader := read.New(r.GetClient()).WithNamespace(xrootd.Namespace).WithOwnerObject(xrootd)
+	deployedResources, err := reader.ListAll(
+		&corev1.ConfigMapList{},
+		&appsv1.StatefulSetList{},
+	)
+	if err != nil {
+		return nil, err
+	}
+	resources := make([]resource.KubernetesResource, 0)
+	for _, items := range deployedResources {
+		resources = append(resources, items...)
+	}
+	return resources, nil
 }
 
 const controllerName = constant.ControllerName
