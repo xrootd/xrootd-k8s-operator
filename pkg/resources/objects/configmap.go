@@ -14,7 +14,10 @@ import (
 )
 
 type xrootdTemplateData struct {
-	XrootdRedirectorDn string
+	XrootdRedirectorDn       string
+	XrootdRedirectorReplicas int
+	XrootdPort               types.ContainerPort
+	CmsdPort                 types.ContainerPort
 }
 
 func getConfigMapName(objectName types.ObjectName, suffix string) string {
@@ -25,6 +28,7 @@ func scanDir(root string, tmplData interface{}) map[string]string {
 	log := rLog.WithName("scanDir")
 	files := map[string]string{}
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) (er error) {
+		log.Info("Scanning file...", "path", path)
 		if err == nil && !info.IsDir() {
 			files[info.Name()], er = template.ApplyTemplate(path, tmplData)
 		}
@@ -46,7 +50,10 @@ func GenerateContainerConfigMap(
 	var tmplData interface{}
 	if config == constant.CfgXrootd {
 		tmplData = xrootdTemplateData{
-			XrootdRedirectorDn: string(utils.GetObjectName(constant.XrootdRedirector, xrootd.Name)),
+			XrootdRedirectorDn:       string(utils.GetObjectName(constant.XrootdRedirector, xrootd.Name)),
+			XrootdRedirectorReplicas: int(xrootd.Spec.Redirector.Replicas),
+			XrootdPort:               constant.XrootdPort,
+			CmsdPort:                 constant.CmsdPort,
 		}
 	}
 	rootDir := filepath.Join("/", "configmaps", string(config), subpath)

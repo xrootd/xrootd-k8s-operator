@@ -11,11 +11,8 @@ if named manager
     all.export / r/w
 
     all.role manager
-    all.manager redirector_hostname 3122
 
     xrd.network nodnr
-    xrd.protocol xrootd *
-    xrd.port 1096
     xrd.timeout idle 48h
 
     # enable third party copies in this machines
@@ -36,10 +33,6 @@ else
 
     all.role server
 
-    all.manager redirector_hostname 3122
-
-    xrd.protocol xrootd *
-    xrd.port 1095
     xrootd.async off
     xrd.sched mint 32 maxt 8192 avlt 512 idle 780
     xrd.timeout idle 48h
@@ -61,4 +54,17 @@ else
     oss.defaults nomig nodread stage nocheck norcreate
     oss.alloc 512M 2 0
     oss.fdlimit * max
+fi
+
+set xrootddn = {{.XrootdRedirectorDn}}
+{{- range $val := Iterate .XrootdReplicas}}
+all.manager ${xrootddn}-{{$val}}.${xrootddn}:{{.CmsdPort}}
+{{- end}}
+
+xrd.port {{.XrootdPort}}
+# - cmsd redirector runs on port 2131
+# - cmsd server does not open server socket
+#   but only client connection to cmsd redirector
+if exec cmsd
+    xrd.port {{.CmsdPort}}
 fi
