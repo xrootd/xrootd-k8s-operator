@@ -148,6 +148,7 @@ func (r *ReconcileXrootd) syncResources(xrootd *xrootdv1alpha1.Xrootd) error {
 	irs := resources.NewInstanceResourceSet(xrootd)
 	irs.AddXrootdRedirectorStatefulSetResource()
 	irs.AddXrootdRedirectorConfigMapResource()
+	irs.AddXrootdRedirectorServiceResource()
 	deployed, err := r.getDeployedResources(xrootd)
 	if err != nil {
 		return err
