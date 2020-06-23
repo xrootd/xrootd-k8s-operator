@@ -10,8 +10,8 @@ func deepEqual(existing resource.KubernetesResource, requested resource.Kubernet
 	return equality.Semantic.DeepEqual(existing, requested)
 }
 
-func GetComparator() compare.ResourceComparator {
+func GetComparator() *compare.MapComparator {
 	comparator := compare.DefaultComparator()
 	comparator.SetDefaultComparator(deepEqual)
-	return comparator
+	return &compare.MapComparator{Comparator: comparator}
 }

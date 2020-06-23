@@ -2,7 +2,7 @@ package xrootd
 
 import (
 	"context"
-	"fmt"
+	"reflect"
 
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/read"
@@ -138,6 +138,7 @@ func (r *ReconcileXrootd) Reconcile(request reconcile.Request) (reconcile.Result
 		return r.ManageError(instance, err)
 	}
 
+	reqLogger.Info("Reconciled successfully!")
 	return r.ManageSuccess(instance)
 }
 
@@ -152,25 +153,27 @@ func (r *ReconcileXrootd) syncResources(xrootd *xrootdv1alpha1.Xrootd) error {
 		return err
 	}
 	writer := write.New(r.GetClient()).WithOwnerController(xrootd, r.GetScheme())
-	delta := comparator.GetComparator().CompareArrays(deployed, irs.GetResources().GetK8SResources())
-	if !delta.HasChanges() {
-		log.Info("No changes detected")
-	}
-	log.Info(fmt.Sprintf("Will create %d, update %d, and delete %d instances", len(delta.Added), len(delta.Updated), len(delta.Removed)))
-	added, err := writer.AddResources(delta.Added)
-	if err != nil {
-		return err
-	}
-	updated, err := writer.UpdateResources(deployed, delta.Updated)
-	if err != nil {
-		return err
-	}
-	removed, err := writer.RemoveResources(delta.Removed)
-	if err != nil {
-		return err
-	}
-	if added || updated || removed {
-		log.Info("Executed changes", "added", added, "updated", updated, "removed", removed)
+	deltaMap := comparator.GetComparator().Compare(deployed, irs.GetResources().GetK8SResources())
+	for resType, delta := range deltaMap {
+		if !delta.HasChanges() {
+			log.Info("No changes detected")
+		}
+		log.Info("Processing delta", "create", len(delta.Added), "update", len(delta.Updated), "delete", len(delta.Removed), "type", resType)
+		added, err := writer.AddResources(delta.Added)
+		if err != nil {
+			return err
+		}
+		updated, err := writer.UpdateResources(deployed[resType], delta.Updated)
+		if err != nil {
+			return err
+		}
+		removed, err := writer.RemoveResources(delta.Removed)
+		if err != nil {
+			return err
+		}
+		if added || updated || removed {
+			log.Info("Executed changes", "added", added, "updated", updated, "removed", removed)
+		}
 	}
 	// lockedresources, err := irs.ToLockedResources()
 	// err = r.UpdateLockedResources(xrootd, lockedresources)
@@ -180,20 +183,13 @@ func (r *ReconcileXrootd) syncResources(xrootd *xrootdv1alpha1.Xrootd) error {
 	return nil
 }
 
-func (r *ReconcileXrootd) getDeployedResources(xrootd *xrootdv1alpha1.Xrootd) ([]resource.KubernetesResource, error) {
+func (r *ReconcileXrootd) getDeployedResources(xrootd *xrootdv1alpha1.Xrootd) (map[reflect.Type][]resource.KubernetesResource, error) {
 	reader := read.New(r.GetClient()).WithNamespace(xrootd.Namespace).WithOwnerObject(xrootd)
-	deployedResources, err := reader.ListAll(
+	return reader.ListAll(
 		&corev1.ConfigMapList{},
 		&appsv1.StatefulSetList{},
+		&corev1.ServiceList{},
 	)
-	if err != nil {
-		return nil, err
-	}
-	resources := make([]resource.KubernetesResource, 0)
-	for _, items := range deployedResources {
-		resources = append(resources, items...)
-	}
-	return resources, nil
 }
 
 const controllerName = constant.ControllerName

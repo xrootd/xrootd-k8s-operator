@@ -57,9 +57,9 @@ else
 fi
 
 set xrootddn = {{.XrootdRedirectorDn}}
-{{- range $val := Iterate .XrootdReplicas}}
-all.manager ${xrootddn}-{{$val}}.${xrootddn}:{{.CmsdPort}}
-{{- end}}
+{{range $val := Iterate .XrootdRedirectorReplicas}}
+all.manager ${xrootddn}-{{$val}}.${xrootddn}:{{$.CmsdPort}}
+{{end}}
 
 xrd.port {{.XrootdPort}}
 # - cmsd redirector runs on port 2131

@@ -1,6 +1,8 @@
 package resources
 
 import (
+	"reflect"
+
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/redhat-cop/operator-utils/pkg/util/lockedresourcecontroller/lockedresource"
 	"github.com/shivanshs9/ty/fun"
@@ -51,12 +53,12 @@ func (res Resource) ToLockedResource() (*lockedresource.LockedResource, error) {
 	return &lockedresource.LockedResource{Unstructured: unstructuredObj, ExcludedPaths: []string{".metadata", ".status"}}, nil
 }
 
-func (resources Resources) ToLockedResources() ([]lockedresource.LockedResource, error) {
+func (res Resources) ToLockedResources() ([]lockedresource.LockedResource, error) {
 	tranformer := func(resource Resource) (lockedresource.LockedResource, error) {
 		result, err := resource.ToLockedResource()
 		return *result, err
 	}
-	result, err := fun.MapWithError(tranformer, resources)
+	result, err := fun.MapWithError(tranformer, res)
 	return result.([]lockedresource.LockedResource), err
 }
 
@@ -72,10 +74,14 @@ func (res Resources) GetObjects() []controllerutil.Object {
 	return objects
 }
 
-func (res Resources) GetK8SResources() []resource.KubernetesResource {
-	objects := make([]resource.KubernetesResource, 0)
+func (res Resources) GetK8SResources() map[reflect.Type][]resource.KubernetesResource {
+	objects := make(map[reflect.Type][]resource.KubernetesResource)
 	for _, item := range res {
-		objects = append(objects, item.Object)
+		key := reflect.TypeOf(item.Object)
+		if _, ok := objects[key]; !ok {
+			objects[key] = make([]resource.KubernetesResource, 0)
+		}
+		objects[key] = append(objects[key], item.Object)
 	}
 	return objects
 }
