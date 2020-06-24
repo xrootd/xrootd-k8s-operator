@@ -48,14 +48,6 @@ spec:
                   minimum: 1
                   type: integer
               type: object
-            storage:
-              description: XrootdStorageSpec defines the storage spec of Xrootd workers
-              properties:
-                storageCapacity:
-                  type: string
-                storageClass:
-                  type: string
-              type: object
             worker:
               description: XrootdWorkerSpec defines the desired state of Xrootd workers
               properties:
@@ -67,6 +59,15 @@ spec:
                   format: int32
                   minimum: 1
                   type: integer
+                storage:
+                  description: XrootdStorageSpec defines the storage spec of Xrootd
+                    workers
+                  properties:
+                    capacity:
+                      type: string
+                    class:
+                      type: string
+                  type: object
               type: object
           type: object
         status:
