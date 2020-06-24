@@ -12,8 +12,7 @@ if named manager
 
     all.role manager
 
-    xrd.network nodnr
-    xrd.timeout idle 48h
+    # xrd.network nodnr
 
     # enable third party copies in this machines
     ofs.tpc autorm pgm /usr/bin/xrdcp
@@ -35,7 +34,6 @@ else
 
     xrootd.async off
     xrd.sched mint 32 maxt 8192 avlt 512 idle 780
-    xrd.timeout idle 48h
 
     # Enable window scaling on the monostream connection
     xrd.network buffsz 0 nodnr
@@ -56,6 +54,24 @@ else
     oss.fdlimit * max
 fi
 
+########################################
+# Shared directives (manager and server)
+########################################
+
+xrd.timeout idle 48h
+
+# This causes hostname resolution to occur at run-time not configuration time
+# This is required by k8s
+# Andy H. still have to modify the local IP-to-Name cache to account
+# for dynamic DNS (it doesn't now). Unfortunately, it's a non-ABI compatible
+# change so it will go into Release 5 branch not git master. The caching
+# shouldn't really be a problem but if causes you grief simply turn it off by
+# also specifying "xrd.network cache 0". Once Andy H. fixes the cache it will work
+# correctly with a dynamic DNS with no side-effects (though it's unlikely any of
+# them are observed as it is).
+xrd.network dyndns
+xrd.network cache 0
+
 set xrootddn = {{.XrootdRedirectorDn}}
 {{range $val := Iterate .XrootdRedirectorReplicas}}
 all.manager ${xrootddn}-{{$val}}.${xrootddn}:{{$.CmsdPort}}
@@ -68,3 +84,6 @@ xrd.port {{.XrootdPort}}
 if exec cmsd
     xrd.port {{.CmsdPort}}
 fi
+
+# Uncomment the following line for detailed xrootd debugging
+xrootd.trace all debug
