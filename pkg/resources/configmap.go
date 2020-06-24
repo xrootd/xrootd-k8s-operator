@@ -6,7 +6,7 @@ import (
 	"github.com/shivanshs9/xrootd-operator/pkg/utils/constant"
 )
 
-func (irs *InstanceResourceSet) AddXrootdRedirectorConfigMapResource() {
+func (irs *InstanceResourceSet) AddXrootdConfigMapResource() {
 	xrootd := irs.xrootd
 	objectName := utils.GetObjectName(constant.CfgXrootd, xrootd.Name)
 	labels := utils.GetComponentLabels(constant.XrootdRedirector, xrootd.Name)

@@ -8,7 +8,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func GenerateXrootdRedirectorService(
+func GenerateXrootdService(
 	xrootd *v1alpha1.Xrootd, objectName types.ObjectName,
 	compLabels types.Labels, componentName types.ComponentName,
 ) corev1.Service {

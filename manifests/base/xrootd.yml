@@ -6,3 +6,6 @@ spec:
   redirector:
     replicas: 1
     image: "xrootd:latest"
+  worker:
+    replicas: 1
+    image: "xrootd:latest"

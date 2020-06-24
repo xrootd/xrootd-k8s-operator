@@ -2,6 +2,7 @@ package objects
 
 import (
 	"github.com/shivanshs9/xrootd-operator/pkg/apis/xrootd/v1alpha1"
+	"github.com/shivanshs9/xrootd-operator/pkg/utils/constant"
 	"github.com/shivanshs9/xrootd-operator/pkg/utils/types"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
@@ -14,7 +15,12 @@ func GenerateXrootdStatefulSet(
 ) appsv1.StatefulSet {
 	labels := compLabels
 	name := string(objectName)
-	var replicas int32 = xrootd.Spec.Redirector.Replicas
+	var replicas int32
+	if componentName == constant.XrootdRedirector {
+		replicas = xrootd.Spec.Redirector.Replicas
+	} else {
+		replicas = xrootd.Spec.Worker.Replicas
+	}
 	containers, volumes := getXrootdContainersAndVolume(xrootd, componentName)
 	return appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{

@@ -45,5 +45,15 @@ func getXrootdContainersAndVolume(xrootd *v1alpha1.Xrootd, component types.Compo
 		},
 	}
 
+	if component == constant.XrootdRedirector {
+		containers[0].Ports = []v1.ContainerPort{
+			{
+				Name:          string(constant.Cmsd),
+				ContainerPort: int32(constant.CmsdPort),
+				Protocol:      v1.ProtocolTCP,
+			},
+		}
+	}
+
 	return containers, volumeSet.volumes
 }

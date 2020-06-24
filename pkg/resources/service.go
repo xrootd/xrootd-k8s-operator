@@ -11,6 +11,15 @@ func (irs *InstanceResourceSet) AddXrootdRedirectorServiceResource() {
 	component := constant.XrootdRedirector
 	objectName := utils.GetObjectName(component, xrootd.Name)
 	labels := utils.GetComponentLabels(component, xrootd.Name)
-	service := objects.GenerateXrootdRedirectorService(xrootd, objectName, labels, component)
+	service := objects.GenerateXrootdService(xrootd, objectName, labels, component)
+	irs.addResource(Resource{Object: &service})
+}
+
+func (irs *InstanceResourceSet) AddXrootdWorkerServiceResource() {
+	xrootd := irs.xrootd
+	component := constant.XrootdWorker
+	objectName := utils.GetObjectName(component, xrootd.Name)
+	labels := utils.GetComponentLabels(component, xrootd.Name)
+	service := objects.GenerateXrootdService(xrootd, objectName, labels, component)
 	irs.addResource(Resource{Object: &service})
 }

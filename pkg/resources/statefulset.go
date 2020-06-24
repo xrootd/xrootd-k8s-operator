@@ -14,3 +14,12 @@ func (irs *InstanceResourceSet) AddXrootdRedirectorStatefulSetResource() {
 	statefulset := objects.GenerateXrootdStatefulSet(xrootd, objectName, labels, component)
 	irs.addResource(Resource{Object: &statefulset})
 }
+
+func (irs *InstanceResourceSet) AddXrootdWorkerStatefulSetResource() {
+	xrootd := irs.xrootd
+	component := constant.XrootdWorker
+	objectName := utils.GetObjectName(component, xrootd.Name)
+	labels := utils.GetComponentLabels(component, xrootd.Name)
+	statefulset := objects.GenerateXrootdStatefulSet(xrootd, objectName, labels, component)
+	irs.addResource(Resource{Object: &statefulset})
+}
