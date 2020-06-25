@@ -20,7 +20,7 @@ jobs:
           echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
       - name: Setup Operator SDK
-        uses: shivanshs9/setup-k8s-operator-sdk@master
+        uses: shivanshs9/setup-k8s-operator-sdk@v1
         with:
           version: "^0.17.0"
       - name: Setup KinD
