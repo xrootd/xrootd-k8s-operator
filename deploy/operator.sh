@@ -2,7 +2,7 @@
 
 # Install and uninstall Xrootd operator
 
-set -euxo pipefail
+set -eux
 
 usage() {
     cat << EOD

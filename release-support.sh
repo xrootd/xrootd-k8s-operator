@@ -14,19 +14,19 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 #
-function hasChanges() {
+hasChanges() {
 	test -n "$(git status -s .)"
 }
 
-function getRelease() {
+getRelease() {
 	awk -F= '/^release=/{print $2}' .release
 }
 
-function getBaseTag() {
+getBaseTag() {
 		sed -n -e "s/^tag=\(.*\)$(getRelease)\$/\1/p" .release
 }
 
-function getTag() {
+getTag() {
 	if [ -z "$1" ] ; then
 		awk -F= '/^tag/{print $2}' .release
 	else
@@ -34,7 +34,7 @@ function getTag() {
 	fi
 }
 
-function setRelease() {
+setRelease() {
 	if [ -n "$1" ] ; then
 		sed -i.x -e "s~^tag=.*~tag=$(getTag $1)~" .release
 		sed -i.x -e "s~^release=.*~release=$1~g" .release
@@ -46,7 +46,7 @@ function setRelease() {
 	fi
 }
 
-function runPreTagCommand() {
+runPreTagCommand() {
 	if [ -n "$1" ] ; then
 		COMMAND=$(sed -n -e "s/@@RELEASE@@/$1/g" -e 's/^pre_tag_command=\(.*\)/\1/p' .release)
 		if [ -n "$COMMAND" ] ; then
@@ -58,17 +58,17 @@ function runPreTagCommand() {
 	fi
 }
 
-function tagExists() {
+tagExists() {
 	tag=${1:-$(getTag)}
 	test -n "$tag" && test -n "$(git tag | grep "^$tag\$")"
 }
 
-function differsFromRelease() {
+differsFromRelease() {
 	tag=$(getTag)
 	! tagExists $tag || test -n "$(git diff --shortstat -r $tag .)"
 }
 
-function getVersion() {
+getVersion() {
 	result=$(getRelease)
 
 	if differsFromRelease; then
@@ -81,7 +81,7 @@ function getVersion() {
 	echo $result
 }
 
-function nextPatchLevel() {
+nextPatchLevel() {
 	version=${1:-$(getRelease)}
 	major_and_minor=$(echo $version | cut -d. -f1,2)
 	patch=$(echo $version | cut -d. -f3)
@@ -89,7 +89,7 @@ function nextPatchLevel() {
 	echo $version
 }
 
-function nextMinorLevel() {
+nextMinorLevel() {
 	version=${1:-$(getRelease)}
 	major=$(echo $version | cut -d. -f1);
 	minor=$(echo $version | cut -d. -f2);
@@ -97,7 +97,7 @@ function nextMinorLevel() {
 	echo $version
 }
 
-function nextMajorLevel() {
+nextMajorLevel() {
 	version=${1:-$(getRelease)}
 	major=$(echo $version | cut -d. -f1);
 	version=$(printf "%d.0.0" $(($major + 1)))
