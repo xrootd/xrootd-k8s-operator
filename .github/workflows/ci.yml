@@ -19,8 +19,13 @@ jobs:
         run: |
           echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-      - uses: xunholy/operator-sdk-action@master
+      - name: Setup Operator SDK
+        uses: shivanshs9/setup-k8s-operator-sdk@master
         with:
-          image: "xrootd/xrootd-operator"
-          tag: "${{ steps.vars.outputs.branch }}.${{ steps.vars.outputs.sha_short }}"
-          dirPath: .
+          version: "^0.17.0"
+      - name: Setup KinD
+        uses: engineerd/setup-kind@v0.4.0
+      - name: Build operator
+        run: make build
+      - name: Deploy operator
+        run: make deploy-operator
