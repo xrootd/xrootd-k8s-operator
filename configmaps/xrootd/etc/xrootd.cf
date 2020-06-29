@@ -73,9 +73,7 @@ xrd.network dyndns
 xrd.network cache 0
 
 set xrootddn = {{.XrootdRedirectorDn}}
-{{range $val := Iterate .XrootdRedirectorReplicas}}
-all.manager ${xrootddn}-{{$val}}.${xrootddn}:{{$.CmsdPort}}
-{{end}}
+all.manager ${xrootddn}:{{$.CmsdPort}}
 
 xrd.port {{.XrootdPort}}
 # - cmsd redirector runs on port 2131
