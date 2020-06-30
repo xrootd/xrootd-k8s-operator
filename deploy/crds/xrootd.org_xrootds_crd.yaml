@@ -64,8 +64,11 @@ spec:
                     workers
                   properties:
                     capacity:
+                      description: Capacity must be a storage capacity and should
+                        be a valid quantity (ex, 1Gi)
                       type: string
                     class:
+                      description: Class must be a storage class
                       type: string
                   type: object
               type: object

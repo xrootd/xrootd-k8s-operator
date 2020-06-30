@@ -19,7 +19,9 @@ type XrootdSpec struct {
 
 // XrootdStorageSpec defines the storage spec of Xrootd workers
 type XrootdStorageSpec struct {
-	Class    string `json:"class,omitempty"`
+	// Class must be a storage class
+	Class string `json:"class,omitempty"`
+	// Capacity must be a storage capacity and should be a valid quantity (ex, 1Gi)
 	Capacity string `json:"capacity,omitempty"`
 }
 
