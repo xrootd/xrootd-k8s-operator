@@ -1,6 +1,8 @@
 package objects
 
 import (
+	"path/filepath"
+
 	"github.com/shivanshs9/xrootd-operator/pkg/apis/xrootd/v1alpha1"
 	"github.com/shivanshs9/xrootd-operator/pkg/utils/constant"
 	"github.com/shivanshs9/xrootd-operator/pkg/utils/types"
@@ -18,7 +20,11 @@ func getXrootdContainersAndVolume(xrootd *v1alpha1.Xrootd, component types.Compo
 	} else {
 		image = spec.Worker.Image
 	}
+	if component == constant.XrootdWorker {
+		volumeSet.addDataPVVolumeMount(filepath.Join("/", "data"))
+	}
 	volumeMounts := volumeSet.volumeMounts.ToSlice()
+
 	containers := []v1.Container{
 		{
 			Name:            string(constant.Cmsd),
