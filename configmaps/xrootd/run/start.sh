@@ -1,11 +1,11 @@
-#!/bin/sh
+#!/usr/bin/env sh
 
 set -eux
 
 usage() {
     cat << EOD
 
-Usage: `basename $0` [options] [cmd]
+Usage: `basename $0` [options]
 
   Available options:
     -s <service> Service to start (cmsd/xrootd)
