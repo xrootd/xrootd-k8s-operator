@@ -49,7 +49,7 @@ A Kubernetes operator to deploy [Xrootd](https://github.com/xrootd/xrootd) at sc
 ### Troubleshooting
 
 - Check operator logs: `kubectl logs -l name=xrootd-operator`
-- [Create issue](https://github.com/shivanshs9/xrootd-operator/issues/new) and if needed, provide operator logs too.
+- [Create issue](https://github.com/shivanshs9/xrootd-operator/issues/new/choose) and if needed, provide operator logs too.
 
 ### Useful Links
 
