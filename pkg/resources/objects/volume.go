@@ -1,9 +1,11 @@
 package objects
 
 import (
+	"github.com/shivanshs9/xrootd-operator/pkg/apis/xrootd/v1alpha1"
 	"github.com/shivanshs9/xrootd-operator/pkg/utils"
 	"github.com/shivanshs9/xrootd-operator/pkg/utils/types"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -16,6 +18,10 @@ type InstanceVolumeSet struct {
 
 func getConfigVolumeName(configmapName string) string {
 	return utils.SuffixName("config", configmapName)
+}
+
+func getDataPVName(name string) string {
+	return utils.SuffixName(name, "data")
 }
 
 func newInstanceVolumeSet(meta metav1.ObjectMeta) *InstanceVolumeSet {
@@ -64,4 +70,29 @@ func (ivs *InstanceVolumeSet) addEtcConfigVolume(config types.ConfigName) {
 
 func (ivs *InstanceVolumeSet) addRunConfigVolume(config types.ConfigName) {
 	ivs.addConfigVolume(config, "run", "/config-run", 0555)
+}
+
+func (ivs *InstanceVolumeSet) addDataPVVolumeMount(mountPath string) {
+	volumeMount := v1.VolumeMount{
+		Name:      getDataPVName(ivs.meta.Name),
+		MountPath: mountPath,
+	}
+	ivs.addVolumeMounts(volumeMount)
+}
+
+func getDataPVClaim(xrootd *v1alpha1.Xrootd) v1.PersistentVolumeClaim {
+	return v1.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: getDataPVName(xrootd.Name),
+		},
+		Spec: v1.PersistentVolumeClaimSpec{
+			AccessModes:      []v1.PersistentVolumeAccessMode{v1.ReadWriteOnce},
+			StorageClassName: &xrootd.Spec.Worker.Storage.Class,
+			Resources: v1.ResourceRequirements{
+				Requests: v1.ResourceList{
+					"storage": resource.MustParse(xrootd.Spec.Worker.Storage.Capacity),
+				},
+			},
+		},
+	}
 }

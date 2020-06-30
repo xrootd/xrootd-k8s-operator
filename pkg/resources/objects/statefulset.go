@@ -22,7 +22,7 @@ func GenerateXrootdStatefulSet(
 		replicas = xrootd.Spec.Worker.Replicas
 	}
 	containers, volumes := getXrootdContainersAndVolume(xrootd, componentName)
-	return appsv1.StatefulSet{
+	ss := appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: xrootd.Namespace,
@@ -44,4 +44,10 @@ func GenerateXrootdStatefulSet(
 			},
 		},
 	}
+	if componentName == constant.XrootdWorker {
+		ss.Spec.VolumeClaimTemplates = []v1.PersistentVolumeClaim{
+			getDataPVClaim(xrootd),
+		}
+	}
+	return ss
 }
