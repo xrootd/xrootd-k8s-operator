@@ -1,5 +1,11 @@
+CLUSTER_PROVIDER := kind
 OPERATOR_SDK := operator-sdk
-OPERATOR_IMAGE := "xrootd/xrootd-operator"
+IMAGE_LOADER := ./scripts/load-image.sh -p $(CLUSTER_PROVIDER)
+ifdef CLUSTER_NAME
+	IMAGE_LOADER += -c $(CLUSTER_NAME)
+endif
+
+OPERATOR_IMAGE := xrootd/xrootd-operator
 
 ROOT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
 RELEASE_SUPPORT := $(ROOT_DIR)/release-support.sh
@@ -18,10 +24,12 @@ build-k8s:
 build-crds:
 	$(OPERATOR_SDK) generate crds
 
-build-image:
+build-image: ### Built the image and load it in your cluster
 	$(OPERATOR_SDK) build $(OPERATOR_IMAGE):$(VERSION)
 	@docker tag $(OPERATOR_IMAGE):$(VERSION) $(OPERATOR_IMAGE):latest
 	sed "s|REPLACE_IMAGE|$(OPERATOR_IMAGE):$(VERSION)|g" "$(ROOT_DIR)/deploy/operator.yaml.tpl" > "$(ROOT_DIR)/deploy/operator.yaml"
+	@echo "Loading operator image in '$(if $(CLUSTER_NAME),$(CLUSTER_NAME),$(CLUSTER_PROVIDER))' cluster"
+	@$(IMAGE_LOADER) $(OPERATOR_IMAGE):$(VERSION)
 
 deploy-operator: ### Deploy the operator locally
 	@sh $(ROOT_DIR)/deploy/operator.sh
