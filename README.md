@@ -32,7 +32,10 @@ A Kubernetes operator to deploy [Xrootd](https://github.com/xrootd/xrootd) at sc
 - Run `make build` to build from scratch. It hits the following targets:
   - `make build-k8s` - Generates Kubernetes code for Custom Resource (CR). Not needed to run if CRs weren't changed.
   - `make build-crds` - Generates CRDs for API's. Not needed to run if CRs weren't changed.
-  - `make build-image` - Build the Docker image for the operator. Most of the time, this is sufficient to run if there has been no change in CRs ([pkg/apis](pkg/apis))
+  - `make build-image` - Build the Docker image for the operator and loads it in the k8s cluster. Most of the time, this is sufficient to run if there has been no change in CRs ([pkg/apis](pkg/apis))
+- The build command can be configured with the cluster's name and provider to target where the built operator image will be loaded. Set the following environment variables:
+  - `CLUSTER_PROVIDER=(kind/k3s)`
+  - `CLUSTER_NAME=<cluster name>`
 
 #### Install operator
 
@@ -40,6 +43,7 @@ A Kubernetes operator to deploy [Xrootd](https://github.com/xrootd/xrootd) at sc
 
 ### Usage
 
+- [TEMPORARY HACK] Since the xrootd image isn't available at Dockerhub, the image needs to be loaded beforehand in the cluster. Run: `./scripts/bootstrap-xrootd-image.sh` to bootstrap kind/k3s cluster with the 'xrootd'-tagged image.
 - Make sure the xrootd-operator is up and runnning in your K8S cluster (otherwise follow [Installation](Installation)/[Development](Development) steps):
   - To check the status, run `kubectl describe pod -l name=xrootd-operator`
 - Example manifests to deploy Xrootd instance are at [manifests](manifests) folder.
