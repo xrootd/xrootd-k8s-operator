@@ -26,9 +26,7 @@ jobs:
           version: "^0.17.0"
       - name: Setup KinD
         uses: engineerd/setup-kind@v0.4.0
-      - name: Build operator
+      - name: Build operator and Load Image
         run: make build
-      - name: Load operator image
-        run: kind load docker-image xrootd/xrootd-operator:${{ steps.vars.outputs.version }}
       - name: Deploy operator
         run: make deploy-operator
