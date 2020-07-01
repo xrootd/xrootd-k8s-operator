@@ -33,7 +33,7 @@ while getopts vhp:c: c ; do
     esac
 done
 
-if [[ -z "$provider" ]] || egrep -qv "^(kind|k3s)$" <<< "$provider"; then
+if [[ -z "$provider" ]] || (printf '%s\n' "$provider" | egrep -qv "^(kind|k3s)$"); then
     echo "[error] Provide valid Cluster provider name!"
     usage
     exit 2
@@ -48,7 +48,7 @@ fi
 
 image="$1"
 
-if [[ -z "$image" ]] || egrep -qv "^($RE_IMAGE_WORD/)?$RE_IMAGE_WORD(:$RE_IMAGE_TAG_WORD)?$" <<< "$image" ; then
+if [[ -z "$image" ]] || (printf '%s\n' "$image" | egrep -qv "^($RE_IMAGE_WORD/)?$RE_IMAGE_WORD(:$RE_IMAGE_TAG_WORD)?$") ; then
     echo "[error] Provide valid image name!"
     usage
     exit 2
