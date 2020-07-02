@@ -8,8 +8,6 @@
 ############################
 if named manager
 
-    all.export / r/w
-
     all.role manager
 
     # xrd.network nodnr
@@ -28,7 +26,6 @@ if named manager
 # else: server nodes
 ############################
 else
-    all.export / r/w nocheck norcreate
 
     all.role server
 
@@ -57,6 +54,8 @@ fi
 ########################################
 # Shared directives (manager and server)
 ########################################
+
+all.export /data r/w nocheck norcreate
 
 xrd.timeout idle 48h
 

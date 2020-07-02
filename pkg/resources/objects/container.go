@@ -33,6 +33,7 @@ func getXrootdContainersAndVolume(xrootd *v1alpha1.Xrootd, component types.Compo
 			VolumeMounts:    volumeMounts,
 			Command:         constant.ContainerCommand,
 			Args:            []string{"-s", "cmsd"},
+			WorkingDir:      "/tmp",
 		},
 		{
 			Name:            string(constant.Xrootd),
@@ -41,6 +42,7 @@ func getXrootdContainersAndVolume(xrootd *v1alpha1.Xrootd, component types.Compo
 			VolumeMounts:    volumeMounts,
 			Command:         constant.ContainerCommand,
 			Args:            []string{"-s", "xrootd"},
+			WorkingDir:      "/tmp",
 			Ports: []v1.ContainerPort{
 				{
 					Name:          string(constant.Xrootd),
