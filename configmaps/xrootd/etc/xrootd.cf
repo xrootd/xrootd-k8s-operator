@@ -20,7 +20,7 @@ if named manager
     cms.sched cpu 10 io 10 space 80
 
     # Specify how servers are selected for file creation
-    cms.space min 1% 1g 5% 5g
+    #cms.space min 1% 1g 5% 5g
 
 ############################
 # else: server nodes
@@ -40,11 +40,14 @@ else
     # enable third party copies in this machines
     ofs.tpc autorm pgm /usr/bin/xrdcp
 
-    cms.delay servers 1 startup 10 lookup 1 qdl 1
+    # cms.delay servers 1 startup 10 lookup 1 qdl 1
+
+    # Specify that no significant free space is required on servers
+    # Indeed current configuration doesn't expect to be dynamically
+    # written to, but export the space in R/W mode
+    cms.space 1k 2k
 
     cms.sched cpu 10 io 10 space 80
-    cms.perf int 5m pgm /usr/share/xrootd/utils/XrdOlbMonPerf 300
-    cms.space linger 0 recalc 5 min 100g 100g
 
     oss.defaults nomig nodread stage nocheck norcreate
     oss.alloc 512M 2 0
