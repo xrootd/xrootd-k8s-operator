@@ -44,7 +44,7 @@ A Kubernetes operator to deploy [Xrootd](https://github.com/xrootd/xrootd) at sc
 ### Usage
 
 - [TEMPORARY HACK] Since the xrootd image isn't available at Dockerhub, the image needs to be loaded beforehand in the cluster. Run: `./scripts/bootstrap-xrootd-image.sh` to bootstrap kind/k3s cluster with the 'xrootd'-tagged image.
-- Make sure the xrootd-operator is up and runnning in your K8S cluster (otherwise follow [Installation](Installation)/[Development](Development) steps):
+- Make sure the xrootd-operator is up and runnning in your K8S cluster (otherwise follow [Installation](#Installation)/[Development](#Development) steps):
   - To check the status, run `kubectl describe pod -l name=xrootd-operator`
 - Example manifests to deploy Xrootd instance are at [manifests](manifests) folder.
 - To apply any manifest, simply use `kubectl apply`:
