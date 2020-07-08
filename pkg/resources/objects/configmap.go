@@ -18,6 +18,7 @@ type xrootdTemplateData struct {
 	XrootdRedirectorReplicas int
 	XrootdPort               types.ContainerPort
 	CmsdPort                 types.ContainerPort
+	XrootdSharedPath         string
 }
 
 func getConfigMapName(objectName types.ObjectName, suffix string) string {
@@ -54,6 +55,7 @@ func GenerateContainerConfigMap(
 			XrootdRedirectorReplicas: int(xrootd.Spec.Redirector.Replicas),
 			XrootdPort:               constant.XrootdPort,
 			CmsdPort:                 constant.CmsdPort,
+			XrootdSharedPath:         constant.XrootdSharedAdminPath,
 		}
 	}
 	rootDir := filepath.Join("/", "configmaps", string(config), subpath)

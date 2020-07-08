@@ -14,6 +14,9 @@ func getXrootdContainersAndVolume(xrootd *v1alpha1.Xrootd, component types.Compo
 	volumeSet := newInstanceVolumeSet(xrootd.ObjectMeta)
 	volumeSet.addEtcConfigVolume(constant.CfgXrootd)
 	volumeSet.addRunConfigVolume(constant.CfgXrootd)
+	// Shared filesystem is mounted for both xrootd and cmsd
+	// Required for worker to communicate to cmsd using the named pipe located at 'adminpath'
+	volumeSet.addEmptyDirVolume(constant.XrootdSharedAdminPathVolumeName, constant.XrootdSharedAdminPath)
 	var image string
 	if component == constant.XrootdRedirector {
 		image = spec.Redirector.Image

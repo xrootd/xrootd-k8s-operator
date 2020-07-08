@@ -34,3 +34,6 @@ const (
 )
 
 var ContainerCommand = []string{"/config-run/start.sh"}
+
+const XrootdSharedAdminPathVolumeName VolumeName = "adminpath"
+const XrootdSharedAdminPath = "/tmp/xrd"

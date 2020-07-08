@@ -60,6 +60,9 @@ fi
 
 all.export /data r/w nocheck norcreate
 
+# Path to shared mounted filesystem for xrootd and cmsd containers
+all.adminpath {{.XrootdSharedPath}}
+
 xrd.timeout idle 48h
 
 # This causes hostname resolution to occur at run-time not configuration time

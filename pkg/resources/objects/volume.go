@@ -64,6 +64,21 @@ func (ivs *InstanceVolumeSet) addConfigVolume(config types.ConfigName, subPath s
 	ivs.addVolumeMounts(volumeMount)
 }
 
+func (ivs *InstanceVolumeSet) addEmptyDirVolume(volumeName types.VolumeName, path string) {
+	volume := v1.Volume{
+		Name: string(volumeName),
+		VolumeSource: v1.VolumeSource{
+			EmptyDir: &v1.EmptyDirVolumeSource{},
+		},
+	}
+	volumeMount := v1.VolumeMount{
+		Name:      string(volumeName),
+		MountPath: path,
+	}
+	ivs.addVolumes(volume)
+	ivs.addVolumeMounts(volumeMount)
+}
+
 func (ivs *InstanceVolumeSet) addEtcConfigVolume(config types.ConfigName) {
 	ivs.addConfigVolume(config, "etc", "/config-etc", 0)
 }

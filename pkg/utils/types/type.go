@@ -14,6 +14,8 @@ type KindName string
 
 type ObjectName string
 
+type VolumeName string
+
 type ContainerPort int
 
 func (port *ContainerPort) String() string {
