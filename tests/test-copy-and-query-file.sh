@@ -5,6 +5,8 @@ DIR=$(cd "$(dirname "$0")"; pwd -P)
 
 xrdfs root://base-xrootd-xrootd-redirector:1094/ ls /data
 
+# Copy data to worker
 xrdcp $DIR/dummy root://base-xrootd-xrootd-redirector:1094//data/dummy
 
-xrdfs root://base-xrootd-xrootd-redirector:1094/ ls /data
+# Verify copied data exists
+xrdfs root://base-xrootd-xrootd-redirector:1094/ ls /data | grep '/data/dummy'
