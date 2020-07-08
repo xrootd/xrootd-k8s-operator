@@ -4,8 +4,8 @@ metadata:
   name: base-xrootd
 spec:
   redirector:
-    image: "xrootd:latest"
+    image: "qserv/xrootd:latest"
   worker:
-    image: "xrootd:latest"
+    image: "qserv/xrootd:latest"
     storage:
       capacity: "1Gi"
