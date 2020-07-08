@@ -22,8 +22,7 @@ kubectl delete pod -l "instance=$INSTANCE,tier=client" -n "$NAMESPACE"
 kubectl run "$SHELL_POD" --image="qserv/xrootd:latest" --image-pull-policy="IfNotPresent" --restart=Never sleep 3600 -n "$NAMESPACE"
 kubectl label pod "$SHELL_POD" "instance=$INSTANCE" "tier=client" -n "$NAMESPACE"
 
-while ! kubectl wait --for=condition=Ready pods -l "instance=$INSTANCE" -n "$NAMESPACE"
-do
+while ! kubectl wait --for=condition=Ready pods -l "instance=$INSTANCE" -n "$NAMESPACE"; do
   echo "Waiting for xrootd pods to be ready..."
   kubectl describe pod -l "instance=$INSTANCE" -n "$NAMESPACE"
 done
@@ -35,5 +34,10 @@ set -- $(ls tests/test-*.sh)
 # Copy all test files
 kubectl cp "$DIR/../tests" "$NAMESPACE/$SHELL_POD":"/tmp"
 for script in "$@"; do
-    kubectl exec "$SHELL_POD" -it "/tmp/$script"
+  if ! kubectl exec "$SHELL_POD" -it -- "/tmp/$script"; then
+    echo "Xrootd Worker - xrootd logs"
+    kubectl logs -l "component=xrootd-worker,instance=$INSTANCE" -n "$NAMESPACE" -c xrootd
+    echo "Xrootd Redirector - cmsd logs"
+    kubectl logs -l "component=xrootd-redirector,instance=$INSTANCE" -n "$NAMESPACE" -c cmsd
+  fi
 done
