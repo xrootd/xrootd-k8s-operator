@@ -50,6 +50,16 @@ A Kubernetes operator to deploy [Xrootd](https://github.com/xrootd/xrootd) at sc
 - To apply any manifest, simply use `kubectl apply`:
   - For example, to apply base sample manifest, run `kubectl apply -k manifests/base`
 
+### Testing
+
+#### Unit tests
+
+- TODO
+
+#### Integration tests
+
+- Run the suite of e2e tests with `./scripts/run-e2e-tests.sh`.
+
 ### Troubleshooting
 
 - Check operator logs: `kubectl logs -l name=xrootd-operator`
