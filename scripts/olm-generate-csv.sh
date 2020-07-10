@@ -2,8 +2,10 @@
 
 # Script to generate the CSV manifest for the operator.
 
+set -eux
+
 DIR=$(cd "$(dirname "$0")"; pwd -P)
-source ${DIR}/env.sh
+. ${DIR}/env.sh
 
 # Generate CSV 
 echo "Generating CSV for version ${XROOTD_OPERATOR_VERSION}"

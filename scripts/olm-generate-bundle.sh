@@ -2,8 +2,10 @@
 
 # Script to generate the OLM bundle for the operator.
 
+set -eux
+
 DIR=$(cd "$(dirname "$0")"; pwd -P)
-source ${DIR}/env.sh
+. ${DIR}/env.sh
 
 # Generate Bundle
 echo "Generating Bundle for version ${XROOTD_OPERATOR_VERSION}"
