@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-# Script to generate the OLM artifacts for the operator.
+# Script to generate the CSV manifest for the operator.
 
 DIR=$(cd "$(dirname "$0")"; pwd -P)
 source ${DIR}/env.sh

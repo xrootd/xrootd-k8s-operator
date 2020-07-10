@@ -1,0 +1,25 @@
+# Xrootd operator OLM Integration workflow
+---
+name: "Xrootd operator OLM"
+on:
+  push:
+  pull_request:
+    branches:
+      - master
+jobs:
+  bundle:
+    name: Bundle Operator
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup Operator SDK
+        uses: shivanshs9/setup-k8s-operator-sdk@v1
+        with:
+          version: "^0.18.0"
+      - name: Generate CSV manifest
+        run: ./scripts/olm-generate-csv.sh
+      - name: Generate OLM bundle
+        run: ./scripts/olm-generate-bundle.sh
+      - name: Validate Bundle
+        run: operator-sdk bundle validate ./deploy/olm-catalog/xrootd-operator

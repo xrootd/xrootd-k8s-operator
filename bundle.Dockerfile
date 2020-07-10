@@ -8,4 +8,4 @@ LABEL operators.operatorframework.io.bundle.channels.v1=stable
 LABEL operators.operatorframework.io.bundle.channel.default.v1=stable
 
 COPY deploy/olm-catalog/xrootd-operator/manifests /manifests/
-COPY deploy/olm-catalog/xrootd-operator/metadata/annotations.yaml /metadata/annotations.yaml
+COPY deploy/olm-catalog/xrootd-operator/metadata /metadata/
