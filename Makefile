@@ -1,14 +1,15 @@
+ROOT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
+ENVFILE := $(ROOT_DIR)/scripts/env.sh
+RELEASE_SUPPORT := $(ROOT_DIR)/scripts/release-support.sh
+
 CLUSTER_PROVIDER := kind
 OPERATOR_SDK := operator-sdk
-IMAGE_LOADER := ./scripts/load-image.sh -p $(CLUSTER_PROVIDER)
+IMAGE_LOADER := $(ROOT_DIR)/scripts/load-image.sh -p $(CLUSTER_PROVIDER)
 ifdef CLUSTER_NAME
 	IMAGE_LOADER += -c $(CLUSTER_NAME)
 endif
 
-OPERATOR_IMAGE := xrootd/xrootd-operator
-
-ROOT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
-RELEASE_SUPPORT := $(ROOT_DIR)/release-support.sh
+OPERATOR_IMAGE := $(shell . $(ENVFILE) ; echo $${XROOTD_OPERATOR_IMAGE_REPO})
 VERSION := $(shell . $(RELEASE_SUPPORT) ; getVersion)
 
 .PHONY: help version build-k8s build-crds build-image build deploy-operator
@@ -43,3 +44,7 @@ version: .release ### Shows the current release tag based on the directory conte
 	@echo 'pre_tag_command=sed -i -e "s/^Version = .*/Version = \"@@RELEASE@@\"/" version/version.go' >> .release
 	@echo INFO: .release created
 	@cat .release
+
+test:
+	@echo $(OPERATOR_IMAGE)
+	@echo $(VERSION)

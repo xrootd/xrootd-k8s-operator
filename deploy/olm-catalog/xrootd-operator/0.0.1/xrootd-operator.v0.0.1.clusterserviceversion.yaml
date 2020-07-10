@@ -22,170 +22,206 @@ spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
     owned:
-    - description: Xrootd is the Schema for the xrootds API
-      kind: Xrootd
-      name: xrootds.xrootd.org
-      version: v1alpha1
+      - description: Xrootd is the Schema for the xrootds API
+        kind: Xrootd
+        name: xrootds.xrootd.org
+        version: v1alpha1
   displayName: Xrootd Operator
+  description: |
+    ## Overview
+
+    Xrootd Operator manages the full lifecycle of [Xrootd](https://github.com/xrootd/xrootd) at scale,
+    in order to ease and fully automate deployment and management of XRootD clusters.
+
+    The operator aims to provide the following:
+
+    - **Basic Install** and **Seamless upgrades** to Xrootd components.
+    - Out-of-box Intra-Cluster discovery support.
+
+    Mind you, this is still a work-in-progress implementation.
+
+    ## Usage
+
+    Deploy a basic Xrootd cluster by creating a new `Xrootd` resource in the namespace where the operator is installed.
+    ```
+    apiVersion: xrootd.org/v1alpha1
+    kind: Xrootd
+    metadata:
+      name: example-xrootd
+    spec:
+      redirector:
+        image: "qserv/xrootd:latest"
+      worker:
+        image: "qserv/xrootd:latest"
+        storage:
+          capacity: "1Gi"
+    ```
+
+    See the examples on [github](https://github.com/xrootd/xrootd-k8s-operator/tree/master/manifests) for more information.
   icon:
-  - base64data: ""
-    mediatype: ""
+    - base64data: ""
+      mediatype: ""
   install:
     spec:
       deployments:
-      - name: xrootd-operator
-        spec:
-          replicas: 1
-          selector:
-            matchLabels:
-              name: xrootd-operator
-          strategy: {}
-          template:
-            metadata:
-              labels:
+        - name: xrootd-operator
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
                 name: xrootd-operator
-            spec:
-              containers:
-              - command:
-                - xrootd-operator
-                env:
-                - name: WATCH_NAMESPACE
-                  valueFrom:
-                    fieldRef:
-                      fieldPath: metadata.annotations['olm.targetNamespaces']
-                - name: POD_NAME
-                  valueFrom:
-                    fieldRef:
-                      fieldPath: metadata.name
-                - name: OPERATOR_NAME
-                  value: xrootd-operator
-                image: xrootd/xrootd-operator:0.0.0-5ff7abb
-                imagePullPolicy: IfNotPresent
+            strategy: {}
+            template:
+              metadata:
+                labels:
+                  name: xrootd-operator
+              spec:
+                containers:
+                  - command:
+                      - xrootd-operator
+                    env:
+                      - name: WATCH_NAMESPACE
+                        valueFrom:
+                          fieldRef:
+                            fieldPath: metadata.annotations['olm.targetNamespaces']
+                      - name: POD_NAME
+                        valueFrom:
+                          fieldRef:
+                            fieldPath: metadata.name
+                      - name: OPERATOR_NAME
+                        value: xrootd-operator
+                    image: xrootd/xrootd-operator:0.0.0-5ff7abb
+                    imagePullPolicy: IfNotPresent
+                    name: xrootd-operator
+                    resources: {}
+                serviceAccountName: xrootd-operator
+        - name: xrootd-operator
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
                 name: xrootd-operator
-                resources: {}
-              serviceAccountName: xrootd-operator
-      - name: xrootd-operator
-        spec:
-          replicas: 1
-          selector:
-            matchLabels:
-              name: xrootd-operator
-          strategy: {}
-          template:
-            metadata:
-              labels:
-                name: xrootd-operator
-            spec:
-              containers:
-              - command:
-                - xrootd-operator
-                env:
-                - name: WATCH_NAMESPACE
-                  valueFrom:
-                    fieldRef:
-                      fieldPath: metadata.annotations['olm.targetNamespaces']
-                - name: POD_NAME
-                  valueFrom:
-                    fieldRef:
-                      fieldPath: metadata.name
-                - name: OPERATOR_NAME
-                  value: xrootd-operator
-                image: REPLACE_IMAGE
-                imagePullPolicy: IfNotPresent
-                name: xrootd-operator
-                resources: {}
-              serviceAccountName: xrootd-operator
+            strategy: {}
+            template:
+              metadata:
+                labels:
+                  name: xrootd-operator
+              spec:
+                containers:
+                  - command:
+                      - xrootd-operator
+                    env:
+                      - name: WATCH_NAMESPACE
+                        valueFrom:
+                          fieldRef:
+                            fieldPath: metadata.annotations['olm.targetNamespaces']
+                      - name: POD_NAME
+                        valueFrom:
+                          fieldRef:
+                            fieldPath: metadata.name
+                      - name: OPERATOR_NAME
+                        value: xrootd-operator
+                    image: REPLACE_IMAGE
+                    imagePullPolicy: IfNotPresent
+                    name: xrootd-operator
+                    resources: {}
+                serviceAccountName: xrootd-operator
       permissions:
-      - rules:
-        - apiGroups:
-          - ""
-          resources:
-          - pods
-          - services
-          - services/finalizers
-          - endpoints
-          - persistentvolumeclaims
-          - events
-          - configmaps
-          - secrets
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
-          - apps
-          resources:
-          - deployments
-          - daemonsets
-          - replicasets
-          - statefulsets
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
-          - monitoring.coreos.com
-          resources:
-          - servicemonitors
-          verbs:
-          - get
-          - create
-        - apiGroups:
-          - apps
-          resourceNames:
-          - xrootd-operator
-          resources:
-          - deployments/finalizers
-          verbs:
-          - update
-        - apiGroups:
-          - ""
-          resources:
-          - pods
-          verbs:
-          - get
-        - apiGroups:
-          - apps
-          resources:
-          - replicasets
-          - deployments
-          verbs:
-          - get
-        - apiGroups:
-          - xrootd.org
-          resources:
-          - '*'
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        serviceAccountName: xrootd-operator
+        - rules:
+            - apiGroups:
+                - ""
+              resources:
+                - pods
+                - services
+                - services/finalizers
+                - endpoints
+                - persistentvolumeclaims
+                - events
+                - configmaps
+                - secrets
+              verbs:
+                - create
+                - delete
+                - get
+                - list
+                - patch
+                - update
+                - watch
+            - apiGroups:
+                - apps
+              resources:
+                - deployments
+                - daemonsets
+                - replicasets
+                - statefulsets
+              verbs:
+                - create
+                - delete
+                - get
+                - list
+                - patch
+                - update
+                - watch
+            - apiGroups:
+                - monitoring.coreos.com
+              resources:
+                - servicemonitors
+              verbs:
+                - get
+                - create
+            - apiGroups:
+                - apps
+              resourceNames:
+                - xrootd-operator
+              resources:
+                - deployments/finalizers
+              verbs:
+                - update
+            - apiGroups:
+                - ""
+              resources:
+                - pods
+              verbs:
+                - get
+            - apiGroups:
+                - apps
+              resources:
+                - replicasets
+                - deployments
+              verbs:
+                - get
+            - apiGroups:
+                - xrootd.org
+              resources:
+                - "*"
+              verbs:
+                - create
+                - delete
+                - get
+                - list
+                - patch
+                - update
+                - watch
+          serviceAccountName: xrootd-operator
     strategy: deployment
   installModes:
-  - supported: true
-    type: OwnNamespace
-  - supported: true
-    type: SingleNamespace
-  - supported: false
-    type: MultiNamespace
-  - supported: true
-    type: AllNamespaces
+    - supported: true
+      type: OwnNamespace
+    - supported: true
+      type: SingleNamespace
+    - supported: false
+      type: MultiNamespace
+    - supported: true
+      type: AllNamespaces
+  links:
+    - name: Xrootd Operator project
+      url: https://github.com/xrootd/xrootd-k8s-operator
   keywords:
-  - ""
+    - Xrootd
   maintainers:
-  - {}
+    - name: Shivansh Saini
+      email: shivanshs9@gmail.com
   maturity: alpha
-  provider: {}
+  provider:
+    name: Xrootd community
   version: 0.0.1
