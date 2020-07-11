@@ -13,13 +13,16 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+      - name: Declare Version Variables
+        id: vars
+        shell: bash
+        run: |
+          echo "::set-output name=bundle_image::$(. ./scripts/env.sh; echo $XROOTD_OPERATOR_BUNDLE_IMAGE)"
       - name: Setup Operator SDK
         uses: shivanshs9/setup-k8s-operator-sdk@v1
         with:
           version: "^0.18.0"
-      - name: Generate CSV manifest
-        run: ./scripts/olm-generate-csv.sh
-      - name: Generate OLM bundle
-        run: ./scripts/olm-generate-bundle.sh
+      - name: Build bundle
+        run: make bundle
       - name: Validate Bundle
-        run: operator-sdk bundle validate ./deploy/olm-catalog/xrootd-operator
+        run: operator-sdk bundle validate ${{ steps.vars.outputs.bundle_image }}

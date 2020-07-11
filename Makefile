@@ -13,7 +13,7 @@ endif
 OPERATOR_IMAGE := $(shell . $(ENVFILE) ; echo $${XROOTD_OPERATOR_IMAGE_REPO})
 VERSION := $(shell . $(RELEASE_SUPPORT) ; getVersion)
 
-.PHONY: help version bundle uninstall code-vet code-fmt code code-gen build-image build dev-install
+.PHONY: help version bundle olm-generate uninstall code-vet code-fmt code code-gen build-image build dev-install
 
 help: ## Display this help
 	@echo -e "Usage:\n  make \033[36m<target>\033[0m"
@@ -23,7 +23,7 @@ help: ## Display this help
 
 ##@ Application
 
-bundle: ## Bundle the operator in OLM format
+bundle: olm-generate ## Bundle the operator in OLM format
 	@$(SCRIPTS_DIR)/olm-bundle.sh
 
 uninstall: ## Uninstall the operator
@@ -62,12 +62,20 @@ build: build-image ## Build the Operator Image and load it in your cluster
 	@$(IMAGE_LOADER) $(OPERATOR_IMAGE):$(VERSION)
 
 build-image: ## Build the operator docker image
-	@echo $(VERSION)
 	$(OPERATOR_SDK) build $(OPERATOR_IMAGE):$(VERSION)
 	@docker tag $(OPERATOR_IMAGE):$(VERSION) $(OPERATOR_IMAGE):latest
 
-version: .release ## Shows the current release tag based on the directory content.
+##@ Versioning
+
+version-image: .release ## Shows the current release tag based on the directory content.
 	@. $(RELEASE_SUPPORT); getVersion
+
+version: ## Shows the current release version based on version/version.go
+	@. $(ENVFILE) ; echo $$XROOTD_OPERATOR_VERSION
+
+olm-generate: ## Generates the required CSV manifests
+	@echo "....... Generating CSV ......."
+	@$(SCRIPTS_DIR)/olm-generate-csv.sh
 
 ##@ Tests
 
