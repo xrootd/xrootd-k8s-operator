@@ -29,36 +29,40 @@ A Kubernetes operator to deploy [Xrootd](https://github.com/xrootd/xrootd) at sc
 
 #### Build operator
 
-- Run `make build` to build from scratch. It hits the following targets:
-  - `make build-k8s` - Generates Kubernetes code for Custom Resource (CR). Not needed to run if CRs weren't changed.
-  - `make build-crds` - Generates CRDs for API's. Not needed to run if CRs weren't changed.
-  - `make build-image` - Build the Docker image for the operator and loads it in the k8s cluster. Most of the time, this is sufficient to run if there has been no change in CRs ([pkg/apis](pkg/apis))
+- Run `make code` to run code format and generate code via operator-sdk.
+- Run `make build` to build operator image from scratch and loads it in the k8s cluster. Most of the time, this is sufficient to run if there has been no change in CRs ([pkg/apis](pkg/apis))
 - The build command can be configured with the cluster's name and provider to target where the built operator image will be loaded. Set the following environment variables:
   - `CLUSTER_PROVIDER=(kind/k3s)`
   - `CLUSTER_NAME=<cluster name>`
 
 #### Install operator
 
-- Run `make deploy-operator` to deploy the operator image in the cluster, along with applying the required roles, service accounts etc.
+- Run `make dev-install` to deploy the operator image in the cluster, along with applying the required roles, service accounts etc.
 
 ### Usage
 
-- [TEMPORARY HACK] Since the xrootd image isn't available at Dockerhub, the image needs to be loaded beforehand in the cluster. Run: `./scripts/bootstrap-xrootd-image.sh` to bootstrap kind/k3s cluster with the 'xrootd'-tagged image.
 - Make sure the xrootd-operator is up and runnning in your K8S cluster (otherwise follow [Installation](#Installation)/[Development](#Development) steps):
   - To check the status, run `kubectl describe pod -l name=xrootd-operator`
 - Example manifests to deploy Xrootd instance are at [manifests](manifests) folder.
 - To apply any manifest, simply use `kubectl apply`:
   - For example, to apply base sample manifest, run `kubectl apply -k manifests/base`
 
+### Bundle
+
+Xrootd Operator is integrated with OLM.
+
+- To generate OLM CSV manifest, run `./scripts/olm-generate-csv.sh`.
+- To build the operator bundle image, run `make bundle`.
+
 ### Testing
 
 #### Unit tests
 
-- TODO
+- Run the unit tests with `make tests-unit`.
 
 #### Integration tests
 
-- Run the suite of e2e tests with `./scripts/run-e2e-tests.sh`.
+- Run the suite of e2e tests with `make tests-e2e`.
 
 ### Troubleshooting
 

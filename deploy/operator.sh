@@ -32,7 +32,7 @@ kubectl config current-context || {
 }
 echo ""
 
-DEV_INSTALL=true # TODO: Only Dev Install allowed
+DEV_INSTALL=false
 UNINSTALL=false
 PURGE=true
 
@@ -71,24 +71,25 @@ if [ "$UNINSTALL" = true ]; then
   kubectl delete deployment,role,rolebinding,serviceaccount xrootd-operator
   kubectl delete crds xrootds.xrootd.org
 
-  echo -e "\nSuccessfully uninstall Xrootd-operator"
+  echo -e "\nSuccessfully uninstalled Xrootd-operator"
   exit 0
 fi
 
 if [ "$DEV_INSTALL" = true ]; then
   MANIFESTS_DIR=$(dirname "$DIR")
 else
-  MANIFESTS_DIR="TODOOOOO"
+  MANIFESTS_DIR="https://raw.githubusercontent.com/xrootd/xrootd-k8s-operator/master"
 fi
 
 kapply="kubectl apply -n $NAMESPACE -f "
 
-echo "Install Xrootd-operator"
-
+echo "....... Applying CRDs ......."
 $kapply "$MANIFESTS_DIR"/deploy/crds/xrootd.org_xrootds_crd.yaml
+echo "....... Applying Rules and Service Account ....."
 $kapply "$MANIFESTS_DIR"/deploy/service_account.yaml
 $kapply "$MANIFESTS_DIR"/deploy/role.yaml
 $kapply "$MANIFESTS_DIR"/deploy/role_binding.yaml
+echo "....... Applying Operator ......."
 $kapply "$MANIFESTS_DIR"/deploy/operator.yaml
 
 while ! kubectl wait --for=condition=Ready pods -l name=xrootd-operator -n "$NAMESPACE"
@@ -97,5 +98,4 @@ do
   kubectl describe pod -l name=xrootd-operator -n "$NAMESPACE"
 done
 
-echo
-echo "Successfully installed Xrootd operator in '$NAMESPACE' namespace."
+echo -e "\nSuccessfully installed Xrootd operator in '$NAMESPACE' namespace."
