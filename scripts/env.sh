@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 # Environment variables used in development. This file is sourced in the other scripts.
 

@@ -1,3 +1,5 @@
+SHELL := $(shell which bash)
+
 ROOT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
 SCRIPTS_DIR := $(ROOT_DIR)/scripts
 ENVFILE := $(SCRIPTS_DIR)/env.sh
@@ -24,7 +26,7 @@ help: ## Display this help
 ##@ Application
 
 bundle: olm-generate ## Bundle the operator in OLM format
-	@$(SCRIPTS_DIR)/olm-bundle.sh
+	@$(SHELL) $(SCRIPTS_DIR)/olm-bundle.sh
 
 uninstall: ## Uninstall the operator
 	@echo "....... Uninstalling ......."
@@ -75,7 +77,7 @@ version: ## Shows the current release version based on version/version.go
 
 olm-generate: ## Generates the required CSV manifests
 	@echo "....... Generating CSV ......."
-	@$(SCRIPTS_DIR)/olm-generate-csv.sh
+	@$(SHELL) $(SCRIPTS_DIR)/olm-generate-csv.sh
 
 ##@ Tests
 
