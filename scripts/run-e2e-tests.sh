@@ -13,11 +13,28 @@ Usage: `basename $0`
 EOD
 }
 
+VERBOSE=false
+# get the options
+while getopts vh: c ; do
+    case $c in
+        v) VERBOSE=true; set -eux ;;
+        h) usage; exit ;;
+        \?) usage ; exit 2 ;;
+    esac
+done
+
+shift $(($OPTIND - 1))
+
 DIR=$(cd "$(dirname "$0")"; pwd -P)
 
 NAMESPACE=$(kubectl config view --minify -o='jsonpath={..namespace}')
 NAMESPACE=${NAMESPACE:-default}
 INSTANCE=$(kubectl get xrootds.xrootd.org -o=jsonpath='{.items[0].metadata.name}' -n "$NAMESPACE")
+
+if [[ -z "$INSTANCE" ]]; then
+  echo "No xrootd instance deployed!"
+  exit 1
+fi
 
 SHELL_POD="${INSTANCE}-client"
 
@@ -42,7 +59,7 @@ kubectl cp "$DIR/../tests/e2e/" "$NAMESPACE/$SHELL_POD":"/tmp"
 sleep 5s
 
 for script in "$@"; do
-  if ! kubectl exec "$SHELL_POD" -it -- "/tmp/$script" -i "$INSTANCE"; then
+  if ! kubectl exec "$SHELL_POD" -it -- "/tmp/e2e/$(basename $script)" -i "$INSTANCE" $(if $VERBOSE; then echo -n "-v"; fi); then
     echo "Xrootd Worker - xrootd logs"
     kubectl logs -l "component=xrootd-worker,instance=$INSTANCE" -n "$NAMESPACE" -c xrootd
     echo "Xrootd Redirector - cmsd logs"

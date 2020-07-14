@@ -21,7 +21,7 @@ EOD
 
 DIR=$(cd "$(dirname "$0")"; pwd -P)
 
-echo "Check kubeconfig context"
+echo -n "Check kubeconfig context - "
 kubectl config current-context || {
   echo "Set a context (kubectl use-context <context>) out of the following:"
   echo
