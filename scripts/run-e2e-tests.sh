@@ -1,11 +1,15 @@
 #!/usr/bin/env sh
 
-set -eux
-
 usage() {
     cat << EOD
 
 Usage: `basename $0`
+
+  Available options:
+    -v           Verbose mode
+    -h           Show Usage
+  
+  Run all e2e test scripts in tests/ folder
 EOD
 }
 
@@ -29,12 +33,16 @@ done
 
 # Declare Test scripts to use
 # Not using Array to make it POSIX-compliant
-set -- $(ls tests/test-*.sh)
+set -- $(ls $DIR/../tests/e2e/test-*.sh)
 
 # Copy all test files
-kubectl cp "$DIR/../tests" "$NAMESPACE/$SHELL_POD":"/tmp"
+kubectl cp "$DIR/../tests/e2e/" "$NAMESPACE/$SHELL_POD":"/tmp"
+
+# Wait for cluster to run fine!
+sleep 5s
+
 for script in "$@"; do
-  if ! kubectl exec "$SHELL_POD" -it -- "/tmp/$script"; then
+  if ! kubectl exec "$SHELL_POD" -it -- "/tmp/$script" -i "$INSTANCE"; then
     echo "Xrootd Worker - xrootd logs"
     kubectl logs -l "component=xrootd-worker,instance=$INSTANCE" -n "$NAMESPACE" -c xrootd
     echo "Xrootd Redirector - cmsd logs"

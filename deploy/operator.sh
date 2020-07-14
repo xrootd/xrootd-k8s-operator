@@ -2,22 +2,20 @@
 
 # Install and uninstall Xrootd operator
 
-set -eux
-
 usage() {
     cat << EOD
 
 Usage: `basename $0` [options] [cmd]
 
   Available options:
-    -h, --help           This message
-    -d, --dev            Install from local git repository
-    --n NAMESPACE        Specify namespace (default: kube-system)
-    -u, --uninstall          Uninstall Xrootd-operator,
-                         and related CustomResourceDefinition/CustomResource
+    -d                  Install from local git repository
+    -n NAMESPACE        Specify namespace (default: kubeconfig/default)
+    -u                  Uninstall Xrootd-operator,
+                      and related CustomResourceDefinition/CustomResource
+    -v                  Verbose mode
+    -h                  Show Usage
 
   Install Xrootd-operator
-
 EOD
 }
 
@@ -39,32 +37,19 @@ PURGE=true
 NAMESPACE=$(kubectl config view --minify --output 'jsonpath={..namespace}')
 NAMESPACE=${NAMESPACE:-default}
 
-while test $# -gt 0; do
-  case "$1" in
-    -h | --help)
-      usage
-      exit 0
-      ;;
-    -d | --dev)
-      DEV_INSTALL=true
-      shift
-      ;;
-    -n)
-      shift
-      NAMESPACE="$1"
-      shift
-      ;;
-    -u | --uninstall)
-      export UNINSTALL=true
-      shift
-      ;;
-    *)
-      echo "Error: unknown flag:" $1
-      usage
-      exit 1
-      ;;
-  esac
+# get the options
+while getopts vhudn: c ; do
+    case $c in
+        n) NAMESPACE="$OPTARG" ;;
+        d) DEV_INSTALL=true ;;
+        u) UNINSTALL=true ;;
+        v) set -eux ;;
+        h) usage; exit ;;
+        \?) usage ; exit 2 ;;
+    esac
 done
+
+shift $(($OPTIND - 1))
 
 if [ "$UNINSTALL" = true ]; then
 
