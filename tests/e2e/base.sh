@@ -28,4 +28,4 @@ done
 
 shift $(($OPTIND - 1))
 
-echo "Starting test for '$INSTANCE'..."
+echo "Starting test for '$instance'..."
