@@ -187,7 +187,7 @@ func (r *ReconcileXrootd) syncResources(xrootd *xrootdv1alpha1.Xrootd) error {
 		}
 	}
 	// lockedresources, err := irs.ToLockedResources()
-	// err = r.UpdateLockedResources(xrootd, lockedresources)
+	// err = r.UpdateLockedResources(xrootd, lockedresources, []lockedpatch.LockedPatch{})
 	// if err != nil {
 	// 	log.Error(err, "unable to update locked resources", "locked resources", lockedresources)
 	// }

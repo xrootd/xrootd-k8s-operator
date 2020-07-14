@@ -1,7 +1,7 @@
 package v1alpha1
 
 import (
-	"github.com/redhat-cop/operator-utils/pkg/util/apis"
+	"github.com/RHsyseng/operator-utils/pkg/olm"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -54,18 +54,9 @@ type XrootdStatus struct {
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
-	apis.EnforcingReconcileStatus `json:",inline"`
+	RedirectorStatus olm.DeploymentStatus `json:"redirectorStatus"`
+	WorkerStatus     olm.DeploymentStatus `json:"workerStatus"`
 }
-
-// GetEnforcingReconcileStatus provides the EnforcingReconcileStatus
-// func (xrootd *Xrootd) GetEnforcingReconcileStatus() apis.EnforcingReconcileStatus {
-// 	return xrootd.Status.EnforcingReconcileStatus
-// }
-
-// // SetEnforcingReconcileStatus sets the EnforcingReconcileStatus
-// func (xrootd *Xrootd) SetEnforcingReconcileStatus(reconcileStatus apis.EnforcingReconcileStatus) {
-// 	xrootd.Status.EnforcingReconcileStatus = reconcileStatus
-// }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
