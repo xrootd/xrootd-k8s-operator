@@ -25,7 +25,7 @@ while getopts hs: c ; do
     esac
 done
 
-if [[ $# -eq 0 ]] || [[ -z "$service" ]] || (printf '%s\n' "$service" | egrep -qv "^(xrootd|cmsd)$"); then
+if [ $# -eq 0 ] || [ -z "$service" ] || (printf '%s\n' "$service" | egrep -qv "^(xrootd|cmsd)$"); then
     usage
     exit 2
 fi

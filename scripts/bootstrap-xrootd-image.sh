@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 
+set -e
+
 usage() {
     cat << EOD
 
@@ -26,7 +28,7 @@ while getopts vhp:c: c ; do
     case $c in
         p) provider="$OPTARG" ;;
         c) cluster="$OPTARG" ;;
-        v) set -eux ;;
+        v) set -ux ;;
         h) usage; exit ;;
         \?) usage ; exit 2 ;;
     esac
@@ -35,10 +37,10 @@ done
 echo "Building '$image' image..."
 docker build -t "$image" https://raw.githubusercontent.com/lnielsen/xrootd-docker/master/Dockerfile
 cmd="$scripts/load-image.sh"
-if [[ -n "$provider" ]]; then
+if [ -n "$provider" ]; then
     cmd+=" -p $provider"
 fi
-if [[ -n "$cluster" ]]; then
+if [ -n "$cluster" ]; then
     cmd+=" -c $cluster"
 fi
 cmd+=" $image"

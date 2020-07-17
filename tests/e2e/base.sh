@@ -1,3 +1,5 @@
+set -e
+
 usage() {
     cat << EOD
 
@@ -20,7 +22,7 @@ instance=""
 while getopts vhi: c ; do
     case $c in
         i) instance="$OPTARG" ;;
-        v) set -eux ;;
+        v) set -ux ;;
         h) usage; exit ;;
         \?) usage ; exit 2 ;;
     esac

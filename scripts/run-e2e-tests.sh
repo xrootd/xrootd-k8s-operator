@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 
+set -e
+
 usage() {
     cat << EOD
 
@@ -17,7 +19,7 @@ VERBOSE=false
 # get the options
 while getopts vh: c ; do
     case $c in
-        v) VERBOSE=true; set -eux ;;
+        v) VERBOSE=true; set -ux ;;
         h) usage; exit ;;
         \?) usage ; exit 2 ;;
     esac
@@ -29,12 +31,7 @@ DIR=$(cd "$(dirname "$0")"; pwd -P)
 
 NAMESPACE=$(kubectl config view --minify -o='jsonpath={..namespace}')
 NAMESPACE=${NAMESPACE:-default}
-INSTANCE=$(kubectl get xrootds.xrootd.org -o=jsonpath='{.items[0].metadata.name}' -n "$NAMESPACE")
-
-if [[ -z "$INSTANCE" ]]; then
-  echo "No xrootd instance deployed!"
-  exit 1
-fi
+INSTANCE=$(kubectl get xrootds.xrootd.org -o=jsonpath='{.items[0].metadata.name}' -n "$NAMESPACE") || (echo "No xrootd instance deployed!"; exit 1;)
 
 SHELL_POD="${INSTANCE}-client"
 
