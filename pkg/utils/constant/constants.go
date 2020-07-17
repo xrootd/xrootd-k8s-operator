@@ -1,6 +1,6 @@
 package constant
 
-import . "github.com/shivanshs9/xrootd-operator/pkg/utils/types"
+import . "github.com/xrootd/xrootd-k8s-operator/pkg/utils/types"
 
 const ControllerName = "xrootd-controller"
 

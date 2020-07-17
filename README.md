@@ -1,4 +1,4 @@
-# Xrootd Operator [![Xrootd operator CI](https://github.com/shivanshs9/xrootd-operator/workflows/Xrootd%20operator%20CI/badge.svg)](https://github.com/shivanshs9/xrootd-operator/actions?query=workflow%3A"Xrootd+operator+CI") [![Xrootd operator OLM](https://github.com/xrootd/xrootd-k8s-operator/workflows/Xrootd%20operator%20OLM/badge.svg)](https://github.com/xrootd/xrootd-k8s-operator/actions?query=workflow%3A"Xrootd+operator+OLM")
+# Xrootd Operator [![Xrootd operator CI](https://github.com/xrootd/xrootd-k8s-operator/workflows/Xrootd%20operator%20CI/badge.svg)](https://github.com/xrootd/xrootd-k8s-operator/actions?query=workflow%3A"Xrootd+operator+CI") [![Xrootd operator OLM](https://github.com/xrootd/xrootd-k8s-operator/workflows/Xrootd%20operator%20OLM/badge.svg)](https://github.com/xrootd/xrootd-k8s-operator/actions?query=workflow%3A"Xrootd+operator+OLM")
 
 A Kubernetes operator to deploy [Xrootd](https://github.com/xrootd/xrootd) at scale, in order to ease and fully automate deployment and management of XRootD clusters.
 
@@ -67,7 +67,7 @@ Xrootd Operator is integrated with OLM.
 ### Troubleshooting
 
 - Check operator logs: `kubectl logs -l name=xrootd-operator`
-- [Create issue](https://github.com/shivanshs9/xrootd-operator/issues/new/choose) and if needed, provide operator logs too.
+- [Create issue](https://github.com/xrootd/xrootd-k8s-operator/issues/new/choose) and if needed, provide operator logs too.
 
 ### Useful Links
 

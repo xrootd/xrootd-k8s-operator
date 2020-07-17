@@ -1,9 +1,9 @@
 package resources
 
 import (
-	"github.com/shivanshs9/xrootd-operator/pkg/resources/objects"
-	"github.com/shivanshs9/xrootd-operator/pkg/utils"
-	"github.com/shivanshs9/xrootd-operator/pkg/utils/constant"
+	"github.com/xrootd/xrootd-k8s-operator/pkg/resources/objects"
+	"github.com/xrootd/xrootd-k8s-operator/pkg/utils"
+	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/constant"
 )
 
 func (irs *InstanceResourceSet) AddXrootdRedirectorStatefulSetResource() {
