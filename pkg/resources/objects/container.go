@@ -1,6 +1,7 @@
 package objects
 
 import (
+	"fmt"
 	"path/filepath"
 
 	"github.com/xrootd/xrootd-k8s-operator/pkg/apis/xrootd/v1alpha1"
@@ -28,6 +29,16 @@ func getXrootdContainersAndVolume(xrootd *v1alpha1.Xrootd, component types.Compo
 	}
 	volumeMounts := volumeSet.volumeMounts.ToSlice()
 
+	probe := getExecProbe(
+		[]string{
+			"xrdfs",
+			fmt.Sprintf("%s:%d", "127.0.0.1", constant.XrootdPort),
+			"query",
+			"config",
+			"cms",
+		},
+		20)
+
 	containers := []v1.Container{
 		{
 			Name:            string(constant.Cmsd),
@@ -53,6 +64,7 @@ func getXrootdContainersAndVolume(xrootd *v1alpha1.Xrootd, component types.Compo
 					Protocol:      v1.ProtocolTCP,
 				},
 			},
+			LivenessProbe: probe,
 		},
 	}
 
