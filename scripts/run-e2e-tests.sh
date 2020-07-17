@@ -16,6 +16,7 @@ EOD
 }
 
 VERBOSE=false
+
 # get the options
 while getopts vh: c ; do
     case $c in
@@ -36,7 +37,7 @@ INSTANCE=$(kubectl get xrootds.xrootd.org -o=jsonpath='{.items[0].metadata.name}
 SHELL_POD="${INSTANCE}-client"
 
 # Run xrootd client pod
-kubectl delete pod -l "instance=$INSTANCE,tier=client" -n "$NAMESPACE"
+kubectl delete pod "$SHELL_POD" -n "$NAMESPACE" || echo "No existing shell pod found."
 kubectl run "$SHELL_POD" --image="qserv/xrootd:latest" --image-pull-policy="IfNotPresent" --restart=Never sleep 3600 -n "$NAMESPACE"
 kubectl label pod "$SHELL_POD" "instance=$INSTANCE" "tier=client" -n "$NAMESPACE"
 
@@ -53,7 +54,7 @@ set -- $(ls $DIR/../tests/e2e/test-*.sh)
 kubectl cp "$DIR/../tests/e2e/" "$NAMESPACE/$SHELL_POD":"/tmp"
 
 # Wait for cluster to run fine!
-sleep 5s
+sleep 30s
 
 for script in "$@"; do
   if ! kubectl exec "$SHELL_POD" -it -- "/tmp/e2e/$(basename $script)" -i "$INSTANCE" $(if $VERBOSE; then echo -n "-v"; fi); then
@@ -61,5 +62,6 @@ for script in "$@"; do
     kubectl logs -l "component=xrootd-worker,instance=$INSTANCE" -n "$NAMESPACE" -c xrootd
     echo "Xrootd Redirector - cmsd logs"
     kubectl logs -l "component=xrootd-redirector,instance=$INSTANCE" -n "$NAMESPACE" -c cmsd
+    exit 3
   fi
 done

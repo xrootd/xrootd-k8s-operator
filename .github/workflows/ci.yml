@@ -35,4 +35,4 @@ jobs:
       - name: Apply a sample manifest
         run: kubectl apply -k manifests/base
       - name: Run E2E Tests
-        run: make tests-e2e
+        run: make VERBOSE=true tests-e2e
