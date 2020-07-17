@@ -1,4 +1,5 @@
 SHELL := $(shell which bash)
+VERBOSE_ARG := $(if $(filter $(VERBOSE),true),-v,)
 
 ROOT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
 SCRIPTS_DIR := $(ROOT_DIR)/scripts
@@ -7,7 +8,7 @@ RELEASE_SUPPORT := $(SCRIPTS_DIR)/release-support.sh
 
 CLUSTER_PROVIDER := kind
 OPERATOR_SDK := operator-sdk
-IMAGE_LOADER := $(SCRIPTS_DIR)/load-image.sh -p $(CLUSTER_PROVIDER)
+IMAGE_LOADER := $(SCRIPTS_DIR)/load-image.sh -p $(CLUSTER_PROVIDER) $(VERBOSE_ARG)
 ifdef CLUSTER_NAME
 	IMAGE_LOADER += -c $(CLUSTER_NAME)
 endif
@@ -56,7 +57,7 @@ code-gen: ## Run the operator-sdk commands to generated code (k8s and openapi)
 
 dev-install: ## Deploy the operator locally
 	@echo "....... Installing local build ......."
-	@$(ROOT_DIR)/deploy/operator.sh -d
+	@$(ROOT_DIR)/deploy/operator.sh -d $(VERBOSE_ARG)
 
 build: build-image ## Build the Operator Image and load it in your cluster
 	sed "s|REPLACE_IMAGE|$(OPERATOR_IMAGE):$(VERSION)|g" "$(ROOT_DIR)/deploy/operator.yaml.tpl" > "$(ROOT_DIR)/deploy/operator.yaml"
@@ -83,7 +84,7 @@ olm-generate: ## Generates the required CSV manifests
 
 tests-e2e: ## Run e2e tests
 	@echo "....... Running e2e tests ......."
-	@$(SCRIPTS_DIR)/run-e2e-tests.sh
+	@$(SCRIPTS_DIR)/run-e2e-tests.sh $(VERBOSE_ARG)
 
 tests-unit: ## Run unit tests
 	@echo "....... Running unit tests ......."
