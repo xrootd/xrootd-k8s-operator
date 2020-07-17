@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 
+set -e
+
 usage() {
     cat << EOD
 
@@ -27,13 +29,13 @@ while getopts vhp:c: c ; do
     case $c in
         p) provider="$OPTARG" ;;
         c) cluster="$OPTARG" ;;
-        v) set -eux ;;
+        v) set -ux ;;
         h) usage; exit ;;
         \?) usage ; exit 2 ;;
     esac
 done
 
-if [[ -z "$provider" ]] || (printf '%s\n' "$provider" | egrep -qv "^(kind|k3s)$"); then
+if [ -z "$provider" ] || (printf '%s\n' "$provider" | egrep -qv "^(kind|k3s)$"); then
     echo "[error] Provide valid Cluster provider name!"
     usage
     exit 2
@@ -41,14 +43,14 @@ fi
 
 shift $(($OPTIND - 1))
 
-if [[ $# -eq 0 ]]; then
+if [ $# -eq 0 ]; then
     usage
     exit 2
 fi
 
 image="$1"
 
-if [[ -z "$image" ]] || (printf '%s\n' "$image" | egrep -qv "^($RE_IMAGE_WORD/)?$RE_IMAGE_WORD(:$RE_IMAGE_TAG_WORD)?$") ; then
+if [ -z "$image" ] || (printf '%s\n' "$image" | egrep -qv "^($RE_IMAGE_WORD/)?$RE_IMAGE_WORD(:$RE_IMAGE_TAG_WORD)?$") ; then
     echo "[error] Provide valid image name!"
     usage
     exit 2
@@ -58,19 +60,19 @@ cmd=""
 case "$provider" in
     kind)
         cmd="kind load docker-image $image"
-        if [[ -n "$cluster" ]]; then
+        if [ -n "$cluster" ]; then
             cmd="$cmd --name $cluster"
         fi
         ;;
     k3s)
         cmd="k3d load image $image"
-        if [[ -n "$cluster" ]]; then
+        if [ -n "$cluster" ]; then
             cmd="$cmd --cluster $cluster"
         fi
         ;;
 esac
 
-if [[ -z "$cmd" ]]; then
+if [ -z "$cmd" ]; then
     echo "[error] Not able to generate the command string"
     exit 1
 fi
