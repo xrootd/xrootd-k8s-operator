@@ -18,7 +18,7 @@ spec:
           # Replace this with the built image name
           image: REPLACE_IMAGE
           command:
-          - xrootd-operator
+          - xrootd-k8s-operator
           imagePullPolicy: IfNotPresent
           env:
             - name: WATCH_NAMESPACE

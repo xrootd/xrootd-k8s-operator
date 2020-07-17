@@ -17,7 +17,7 @@ endif
 OPERATOR_IMAGE := $(shell . $(ENVFILE) ; echo $${XROOTD_OPERATOR_IMAGE_REPO})
 VERSION := $(shell . $(RELEASE_SUPPORT) ; getVersion)
 
-.PHONY: help version bundle olm-generate uninstall code-vet code-fmt code code-gen build-image build dev-install
+.PHONY: help version bundle olm-generate uninstall code-vet code-fmt code code-gen build-image build dev-install clean
 
 help: ## Display this help
 	@echo -e "Usage:\n  make \033[36m<target>\033[0m"
@@ -68,6 +68,9 @@ build: build-image ## Build the Operator Image and load it in your cluster
 build-image: ## Build the operator docker image
 	$(OPERATOR_SDK) build $(OPERATOR_IMAGE):$(VERSION) $(VERBOSE_LONG_ARG)
 	@docker tag $(OPERATOR_IMAGE):$(VERSION) $(OPERATOR_IMAGE):latest
+
+clean: ## Clean build outputs
+	rm -r build/_output/
 
 ##@ Versioning
 
