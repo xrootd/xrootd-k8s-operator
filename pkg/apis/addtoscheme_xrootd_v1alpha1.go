@@ -1,7 +1,7 @@
 package apis
 
 import (
-	"github.com/shivanshs9/xrootd-operator/pkg/apis/xrootd/v1alpha1"
+	"github.com/xrootd/xrootd-k8s-operator/pkg/apis/xrootd/v1alpha1"
 )
 
 func init() {

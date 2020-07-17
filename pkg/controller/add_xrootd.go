@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/shivanshs9/xrootd-operator/pkg/controller/xrootd"
+	"github.com/xrootd/xrootd-k8s-operator/pkg/controller/xrootd"
 )
 
 func init() {

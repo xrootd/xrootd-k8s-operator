@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	. "github.com/shivanshs9/xrootd-operator/pkg/utils/types"
+	. "github.com/xrootd/xrootd-k8s-operator/pkg/utils/types"
 )
 
 func AssertDeep(t *testing.T, expected, actual interface{}) {

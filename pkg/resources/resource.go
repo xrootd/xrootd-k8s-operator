@@ -6,7 +6,7 @@ import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/redhat-cop/operator-utils/pkg/util/lockedresourcecontroller/lockedresource"
 	"github.com/shivanshs9/ty/fun"
-	"github.com/shivanshs9/xrootd-operator/pkg/apis/xrootd/v1alpha1"
+	"github.com/xrootd/xrootd-k8s-operator/pkg/apis/xrootd/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"

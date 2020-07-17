@@ -4,8 +4,8 @@ import (
 	"strings"
 
 	"github.com/shivanshs9/ty/fun"
-	"github.com/shivanshs9/xrootd-operator/pkg/utils/constant"
-	. "github.com/shivanshs9/xrootd-operator/pkg/utils/types"
+	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/constant"
+	. "github.com/xrootd/xrootd-k8s-operator/pkg/utils/types"
 )
 
 func MergeLabels(labels ...Labels) Labels {

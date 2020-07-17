@@ -1,4 +1,4 @@
-module github.com/shivanshs9/xrootd-operator
+module github.com/xrootd/xrootd-k8s-operator
 
 go 1.13
 

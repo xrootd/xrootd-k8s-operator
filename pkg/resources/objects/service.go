@@ -1,9 +1,9 @@
 package objects
 
 import (
-	"github.com/shivanshs9/xrootd-operator/pkg/apis/xrootd/v1alpha1"
-	"github.com/shivanshs9/xrootd-operator/pkg/utils/constant"
-	types "github.com/shivanshs9/xrootd-operator/pkg/utils/types"
+	"github.com/xrootd/xrootd-k8s-operator/pkg/apis/xrootd/v1alpha1"
+	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/constant"
+	types "github.com/xrootd/xrootd-k8s-operator/pkg/utils/types"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
