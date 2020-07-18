@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-set -e
+set -eu
 
 usage() {
     cat << EOD
@@ -29,7 +29,7 @@ while getopts vhp:c: c ; do
     case $c in
         p) provider="$OPTARG" ;;
         c) cluster="$OPTARG" ;;
-        v) set -ux ;;
+        v) set -x ;;
         h) usage; exit ;;
         \?) usage ; exit 2 ;;
     esac

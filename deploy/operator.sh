@@ -2,7 +2,7 @@
 
 # Install and uninstall Xrootd operator
 
-set -e
+set -eu
 
 usage() {
     cat << EOD
@@ -45,7 +45,7 @@ while getopts vhudn: c ; do
         n) NAMESPACE="$OPTARG" ;;
         d) DEV_INSTALL=true ;;
         u) UNINSTALL=true ;;
-        v) ux ;;
+        v) set -x ;;
         h) usage; exit ;;
         \?) usage ; exit 2 ;;
     esac

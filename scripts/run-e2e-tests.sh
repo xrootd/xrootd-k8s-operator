@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-set -e
+set -eu
 
 usage() {
     cat << EOD
@@ -20,7 +20,7 @@ VERBOSE=false
 # get the options
 while getopts vh: c ; do
     case $c in
-        v) VERBOSE=true; set -ux ;;
+        v) VERBOSE=true; set -x ;;
         h) usage; exit ;;
         \?) usage ; exit 2 ;;
     esac
