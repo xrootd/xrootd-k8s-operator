@@ -4,12 +4,9 @@ import (
 	"reflect"
 
 	"github.com/RHsyseng/operator-utils/pkg/resource"
-	"github.com/redhat-cop/operator-utils/pkg/util/lockedresourcecontroller/lockedresource"
-	"github.com/shivanshs9/ty/fun"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/apis/xrootd/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -40,27 +37,27 @@ func (irs InstanceResourceSet) GetResources() Resources {
 	return irs.resources
 }
 
-func (res Resource) ToLockedResource() (*lockedresource.LockedResource, error) {
-	err := res.fillGroupVersionKind()
-	if err != nil {
-		return nil, err
-	}
-	mapObj, err := runtime.DefaultUnstructuredConverter.ToUnstructured(res.Object)
-	if err != nil {
-		return nil, err
-	}
-	unstructuredObj := unstructured.Unstructured{Object: mapObj}
-	return &lockedresource.LockedResource{Unstructured: unstructuredObj, ExcludedPaths: []string{".metadata", ".status"}}, nil
-}
+// func (res Resource) ToLockedResource() (*lockedresource.LockedResource, error) {
+// 	err := res.fillGroupVersionKind()
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	mapObj, err := runtime.DefaultUnstructuredConverter.ToUnstructured(res.Object)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	unstructuredObj := unstructured.Unstructured{Object: mapObj}
+// 	return &lockedresource.LockedResource{Unstructured: unstructuredObj, ExcludedPaths: []string{".metadata", ".status"}}, nil
+// }
 
-func (res Resources) ToLockedResources() ([]lockedresource.LockedResource, error) {
-	tranformer := func(resource Resource) (lockedresource.LockedResource, error) {
-		result, err := resource.ToLockedResource()
-		return *result, err
-	}
-	result, err := fun.MapWithError(tranformer, res)
-	return result.([]lockedresource.LockedResource), err
-}
+// func (res Resources) ToLockedResources() ([]lockedresource.LockedResource, error) {
+// 	tranformer := func(resource Resource) (lockedresource.LockedResource, error) {
+// 		result, err := resource.ToLockedResource()
+// 		return *result, err
+// 	}
+// 	result, err := fun.MapWithError(tranformer, res)
+// 	return result.([]lockedresource.LockedResource), err
+// }
 
 func (res Resources) ToSlice() []Resource {
 	return []Resource(res)
@@ -86,9 +83,9 @@ func (res Resources) GetK8SResources() map[reflect.Type][]resource.KubernetesRes
 	return objects
 }
 
-func (irs InstanceResourceSet) ToLockedResources() ([]lockedresource.LockedResource, error) {
-	return irs.resources.ToLockedResources()
-}
+// func (irs InstanceResourceSet) ToLockedResources() ([]lockedresource.LockedResource, error) {
+// 	return irs.resources.ToLockedResources()
+// }
 
 func (irs *InstanceResourceSet) addResource(newResources ...Resource) {
 	irs.resources = append(irs.resources, newResources...)

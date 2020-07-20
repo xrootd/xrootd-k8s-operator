@@ -41,7 +41,7 @@ kubectl delete pod "$SHELL_POD" -n "$NAMESPACE" || echo "No existing shell pod f
 kubectl run "$SHELL_POD" --image="qserv/xrootd:latest" --image-pull-policy="IfNotPresent" --restart=Never sleep 3600 -n "$NAMESPACE"
 kubectl label pod "$SHELL_POD" "instance=$INSTANCE" "tier=client" -n "$NAMESPACE"
 
-while ! kubectl wait --for=condition=ContainersReady pods -l "instance=$INSTANCE" -n "$NAMESPACE"; do
+while ! kubectl wait --for=condition=Ready pods -l "instance=$INSTANCE" -n "$NAMESPACE"; do
   echo "Waiting for xrootd pods to be ready..."
   kubectl describe pod -l "instance=$INSTANCE" -n "$NAMESPACE"
 done
