@@ -48,8 +48,9 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	if watchReconciler, ok := r.(reconciler.WatchReconciler); ok {
-		watchReconciler.StartWatching()
+	if reconciler, ok := r.(*ReconcileXrootd); ok {
+		reconciler.AddXrootdLogger()
+		reconciler.StartWatching()
 	}
 
 	return nil

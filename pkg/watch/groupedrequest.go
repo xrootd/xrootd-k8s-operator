@@ -34,7 +34,7 @@ func (grw GroupedRequestWatcher) Watch(request reconcile.Request) error {
 	return nil
 }
 
-func NewGroupedRequestWatcher(function watchFunc, stop <-chan struct{}) GroupedRequestWatcher {
+func NewGroupedRequestWatcher(function watchFunc) GroupedRequestWatcher {
 	return GroupedRequestWatcher{
 		Func:           function,
 		activeChannels: make(map[string]channelRequest),
