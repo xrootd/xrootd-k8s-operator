@@ -1,42 +1,62 @@
 package watch
 
-import "sigs.k8s.io/controller-runtime/pkg/reconcile"
+import (
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+)
 
-type channelRequest chan reconcile.Request
-
-type watchFunc func(reconcile.Request)
+type watchFunc func(reconcile.Request) error
 
 // GroupedRequestWatcher groups reconcile.Request based on NamespacedName and sends distinct ones
 // to their goroutines.
 type GroupedRequestWatcher struct {
-	activeChannels map[string]channelRequest
-	Func           watchFunc
+	activeChannels map[string]chan<- reconcile.Request
+	subWatcher     Watcher
 }
 
-var _ Watcher = GroupedRequestWatcher{}
+var _ Watcher = &GroupedRequestWatcher{}
+
+var log = logf.Log.WithName("GroupedRequestWatcher")
 
 // Watch implements watch.Watcher
-func (grw GroupedRequestWatcher) Watch(request reconcile.Request) error {
-	key := request.String()
-	channel, ok := grw.activeChannels[key]
-	if !ok {
-		channel = make(channelRequest, 1)
-		grw.activeChannels[key] = channel
-		go func() {
-			for req := range channel {
-				grw.Func(req)
-			}
-		}()
+func (grw *GroupedRequestWatcher) Watch(requests <-chan reconcile.Request) error {
+	for request := range requests {
+		key := request.String()
+		channel := grw.getDistinctRequestChannel(key)
+		if len(channel) < cap(channel) {
+			channel <- request
+		}
 	}
-	if len(channel) < cap(channel) {
-		channel <- request
-	}
+	grw.doCleanup()
 	return nil
 }
 
-func NewGroupedRequestWatcher(function watchFunc) GroupedRequestWatcher {
-	return GroupedRequestWatcher{
-		Func:           function,
-		activeChannels: make(map[string]channelRequest),
+func (grw *GroupedRequestWatcher) getDistinctRequestChannel(key string) chan<- reconcile.Request {
+	channel, ok := grw.activeChannels[key]
+	if !ok {
+		channel = grw.startNewRequestChannel(key)
+	}
+	return channel
+}
+
+func (grw *GroupedRequestWatcher) startNewRequestChannel(key string) chan<- reconcile.Request {
+	channel := make(chan reconcile.Request, 1)
+	go grw.subWatcher.Watch(channel)
+
+	grw.activeChannels[key] = channel
+
+	return channel
+}
+
+func (grw *GroupedRequestWatcher) doCleanup() {
+	for _, channel := range grw.activeChannels {
+		close(channel)
+	}
+}
+
+func NewGroupedRequestWatcher(subWatcher Watcher) Watcher {
+	return &GroupedRequestWatcher{
+		subWatcher:     subWatcher,
+		activeChannels: make(map[string]chan<- reconcile.Request),
 	}
 }

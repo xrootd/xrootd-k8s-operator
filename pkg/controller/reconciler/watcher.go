@@ -70,11 +70,7 @@ func (wm *WatchManager) StartWatching() error {
 
 func (wm *WatchManager) doWatch(watcher watch.Watcher) {
 	dst := make(chan reconcile.Request, defaultChannelCapacity)
-	go func() {
-		for request := range dst {
-			watcher.Watch(request)
-		}
-	}()
+	go watcher.Watch(dst)
 	wm.dest = append(wm.dest, dst)
 }
 

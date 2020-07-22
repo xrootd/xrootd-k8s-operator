@@ -13,6 +13,6 @@ func (r *ReconcileXrootd) RefreshWatch(request reconcile.Request) error {
 }
 
 func (r *ReconcileXrootd) AddXrootdLogger() {
-	r.AddWatchers(xrootd.NewLogsWatcher(constant.XrootdRedirector))
-	r.AddWatchers(xrootd.NewLogsWatcher(constant.XrootdWorker))
+	r.AddWatchers(xrootd.NewLogsWatcher(constant.XrootdRedirector, r))
+	r.AddWatchers(xrootd.NewLogsWatcher(constant.XrootdWorker, r))
 }

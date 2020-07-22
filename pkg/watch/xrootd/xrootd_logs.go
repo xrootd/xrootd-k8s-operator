@@ -13,22 +13,21 @@ import (
 )
 
 type LogsWatcher struct {
-	watch.GroupedRequestWatcher
-	Component types.ComponentName
+	Component  types.ComponentName
+	reconciler reconciler.Reconciler
 }
 
 var _ watch.Watcher = LogsWatcher{}
 
-func NewLogsWatcher(component types.ComponentName, reconciler reconciler.Reconciler) LogsWatcher {
-	lw := &LogsWatcher{
-		Component: component,
+func (lw LogsWatcher) Watch(requests <-chan reconcile.Request) error {
+	for request := range requests {
+
 	}
-	lw.GroupedRequestWatcher = watch.NewGroupedRequestWatcher(lw.processXrootdLogs, reconciler)
-	return *lw
+	return nil
 }
 
 func (lw LogsWatcher) processXrootdLogs(request reconcile.Request) error {
-	clientset, err := kubernetes.NewForConfig(lw.Reconciler.GetConfig())
+	clientset, err := kubernetes.NewForConfig(lw.reconciler.GetConfig())
 	if err != nil {
 		return err
 	}
@@ -54,4 +53,13 @@ func (lw LogsWatcher) processXrootdLogs(request reconcile.Request) error {
 
 func (lw LogsWatcher) getXrootdOwnedPods(component types.ComponentName, request reconcile.Request) ([]corev1.Pod, error) {
 
+}
+
+func NewLogsWatcher(component types.ComponentName, reconciler reconciler.Reconciler) watch.Watcher {
+	return watch.NewGroupedRequestWatcher(
+		LogsWatcher{
+			Component:  component,
+			reconciler: reconciler,
+		},
+	)
 }

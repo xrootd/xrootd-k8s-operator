@@ -30,7 +30,7 @@ func Add(mgr manager.Manager) error {
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 	return &ReconcileXrootd{
 		BaseReconciler: reconciler.NewBaseReconciler(
-			mgr.GetClient(), mgr.GetScheme(), mgr.GetEventRecorderFor(controllerName)),
+			mgr.GetClient(), mgr.GetScheme(), mgr.GetEventRecorderFor(controllerName), mgr.GetConfig()),
 		WatchManager: reconciler.NewWatchManager(nil),
 	}
 }

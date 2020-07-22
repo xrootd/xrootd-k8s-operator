@@ -6,6 +6,7 @@ import (
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -18,6 +19,7 @@ type Reconciler interface {
 	GetClient() client.Client
 	GetRecorder() record.EventRecorder
 	GetScheme() *runtime.Scheme
+	GetConfig() *rest.Config
 	GetResourceInstance(request reconcile.Request, instance resource) error
 	ManageError(instance resource, err error, log logr.Logger) (reconcile.Result, error)
 	ManageSuccess(instance resource, log logr.Logger) (reconcile.Result, error)
@@ -29,14 +31,19 @@ type BaseReconciler struct {
 	// that reads objects from the cache and writes to the apiserver
 	client   client.Client
 	scheme   *runtime.Scheme
+	config   *rest.Config
 	recorder record.EventRecorder
 }
 
-func NewBaseReconciler(client client.Client, scheme *runtime.Scheme, recorder record.EventRecorder) BaseReconciler {
+func NewBaseReconciler(
+	client client.Client, scheme *runtime.Scheme,
+	recorder record.EventRecorder, config *rest.Config,
+) BaseReconciler {
 	return BaseReconciler{
 		client:   client,
 		scheme:   scheme,
 		recorder: recorder,
+		config:   config,
 	}
 }
 
@@ -50,6 +57,10 @@ func (br BaseReconciler) GetRecorder() record.EventRecorder {
 
 func (br BaseReconciler) GetScheme() *runtime.Scheme {
 	return br.scheme
+}
+
+func (br BaseReconciler) GetConfig() *rest.Config {
+	return br.config
 }
 
 // IsBeingDeleted returns whether this object has been requested to be deleted
