@@ -97,8 +97,6 @@ func NewWatchManager(stop <-chan struct{}) *WatchManager {
 	return &WatchManager{
 		watchers: watch.Watchers(make([]watch.Watcher, initialSize)),
 		stop:     stop,
-		once:     sync.Once{},
 		dest:     make([]chan reconcile.Request, initialSize),
-		destLock: sync.Mutex{},
 	}
 }

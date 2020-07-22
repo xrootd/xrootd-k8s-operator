@@ -6,10 +6,11 @@ import (
 	"github.com/shivanshs9/ty/fun"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/constant"
 	. "github.com/xrootd/xrootd-k8s-operator/pkg/utils/types"
+	"k8s.io/apimachinery/pkg/labels"
 )
 
-func MergeLabels(labels ...Labels) Labels {
-	return Labels(fun.MergeMaps(labels).(map[string]string))
+func MergeLabels(args ...Labels) Labels {
+	return fun.MergeMaps(args).(labels.Set)
 }
 
 func GetObjectName(component ComponentName, controllerName string) ObjectName {

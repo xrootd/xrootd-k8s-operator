@@ -1,8 +1,12 @@
 package types
 
-import "strconv"
+import (
+	"strconv"
 
-type Labels = map[string]string
+	"k8s.io/apimachinery/pkg/labels"
+)
+
+type Labels = labels.Set
 
 type ComponentName string
 
