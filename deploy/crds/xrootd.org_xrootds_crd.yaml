@@ -77,45 +77,61 @@ spec:
           status:
             description: XrootdStatus defines the observed state of Xrootd
             properties:
+              currentVersion:
+                description: CurrentVersion is the current xrootd version
+                type: string
+              phase:
+                description: Phase is the cluster running phase
+                type: string
+              reason:
+                type: string
               redirectorStatus:
+                description: MemberStatus defines the observed status of Xrootd member
+                  (worker/redirector)
                 properties:
                   ready:
-                    description: Deployments are ready to serve requests
+                    description: Ready are the xrootd members that are ready to serve
+                      requests The member names are the same as the xrootd pod names
                     items:
                       type: string
                     type: array
-                  starting:
-                    description: Deployments are starting, may or may not succeed
+                  size:
+                    description: Size is the current size of the cluster
+                    type: integer
+                  unready:
+                    description: Unready are the xrootd members not ready to serve
+                      requests
                     items:
                       type: string
                     type: array
-                  stopped:
-                    description: Deployments are not starting, unclear what next step
-                      will be
-                    items:
-                      type: string
-                    type: array
+                required:
+                - size
                 type: object
               workerStatus:
+                description: MemberStatus defines the observed status of Xrootd member
+                  (worker/redirector)
                 properties:
                   ready:
-                    description: Deployments are ready to serve requests
+                    description: Ready are the xrootd members that are ready to serve
+                      requests The member names are the same as the xrootd pod names
                     items:
                       type: string
                     type: array
-                  starting:
-                    description: Deployments are starting, may or may not succeed
+                  size:
+                    description: Size is the current size of the cluster
+                    type: integer
+                  unready:
+                    description: Unready are the xrootd members not ready to serve
+                      requests
                     items:
                       type: string
                     type: array
-                  stopped:
-                    description: Deployments are not starting, unclear what next step
-                      will be
-                    items:
-                      type: string
-                    type: array
+                required:
+                - size
                 type: object
             required:
+            - currentVersion
+            - phase
             - redirectorStatus
             - workerStatus
             type: object
