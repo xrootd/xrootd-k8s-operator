@@ -5,6 +5,7 @@ import (
 	"regexp"
 
 	"github.com/msoap/byline"
+	"github.com/pkg/errors"
 	xrootdv1alpha1 "github.com/xrootd/xrootd-k8s-operator/pkg/apis/xrootd/v1alpha1"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/controller/reconciler"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils"
@@ -32,30 +33,37 @@ var log = logf.Log.WithName("XrootdLogsWatcher")
 
 func (lw LogsWatcher) Watch(requests <-chan reconcile.Request) error {
 	for request := range requests {
+		reqLogger := log.WithValues("request", request, "component", lw.Component)
+
 		instance := &xrootdv1alpha1.Xrootd{}
 		if err := lw.reconciler.GetResourceInstance(request, instance); err != nil {
-			log.Error(err, "Cannot find Xrootd instance!", "request", request)
 			return err
 		}
 		if reconciler.IsBeingDeleted(instance) {
 			// Skip processing if requested instance is being deleted
-			log.Info("Xrootd instance is being deleted...", "request", request)
+			reqLogger.Info("Xrootd instance is being deleted...", "request", request)
 			continue
 		}
-		lw.monitorXrootdStatus(request, instance)
+		if err := lw.monitorXrootdStatus(request, instance); err != nil {
+			reqLogger.Error(err, "Failed to monitor xrootd cluster...")
+		}
 	}
 	return nil
 }
 
 func (lw LogsWatcher) monitorXrootdStatus(request reconcile.Request, instance *xrootdv1alpha1.Xrootd) error {
+	reqLogger := log.WithValues("request", request, "component", lw.Component)
+	reqLogger.Info("Started monitoring xrootd cluster...")
+
 	clientset, err := kubernetes.NewForConfig(lw.reconciler.GetConfig())
 	if err != nil {
-		return err
+		return errors.Wrap(err, "unable to get kubernetes clientset")
 	}
 	pods, err := lw.getXrootdOwnedPods(request)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "unable to get pods owned by the xrootd instance")
 	}
+	reqLogger.Info("Fetched pods...", "pods", len(pods.Items))
 	opt := &corev1.PodLogOptions{
 		Follow:    true,
 		Container: string(constant.Cmsd),
@@ -86,29 +94,32 @@ func (lw LogsWatcher) monitorXrootdStatus(request reconcile.Request, instance *x
 }
 
 func (lw LogsWatcher) getXrootdOwnedPods(request reconcile.Request) (*corev1.PodList, error) {
-	var pods *corev1.PodList
+	pods := &corev1.PodList{}
 	selector := labels.NewSelector()
 	for key, value := range utils.GetComponentLabels(lw.Component, request.Name) {
 		req, err := labels.NewRequirement(key, selection.Equals, []string{value})
 		if err != nil {
 			return nil, err
 		}
-		selector.Add(*req)
+		selector = selector.Add(*req)
 	}
 	opts := client.ListOptions{
 		LabelSelector: selector,
 		Namespace:     request.Namespace,
 	}
 	if err := lw.reconciler.GetClient().List(context.TODO(), pods, &opts); err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed listing pods")
 	}
 	return pods, nil
 }
 
 func (lw LogsWatcher) processXrootdPodLogs(pod *corev1.Pod, opt *corev1.PodLogOptions, clientset *kubernetes.Clientset, resultChannel chan<- bool) {
+	reqLogger := log.WithValues("pod", pod.Name, "component", lw.Component)
+
 	reader, err := k8sutil.GetPodLogStream(*pod, opt, clientset)
 	if err != nil {
-		log.Error(err, "unable to get pod stream", "pod", *pod, "options", opt)
+		reqLogger.Error(err, "unable to get pod stream", "options", opt)
+		resultChannel <- false
 		return
 	}
 	defer reader.Close()
@@ -123,6 +134,7 @@ func (lw LogsWatcher) processXrootdPodLogs(pod *corev1.Pod, opt *corev1.PodLogOp
 	}
 	if err != nil {
 		log.Error(err, "regex compile error", "component", lw.Component)
+		resultChannel <- false
 		return
 	}
 

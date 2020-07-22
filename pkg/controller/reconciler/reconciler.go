@@ -115,16 +115,16 @@ func Reconcile(r Reconciler, request reconcile.Request, instance resource, log l
 	}
 
 	if syncer, ok := r.(SyncReconciler); ok {
-		log.Info("Starting syncing resources...")
+		log.Info("Started syncing resources...")
 		if err := syncer.SyncResources(instance); err != nil {
-			log.Error(err, "Failing syncing resources...")
+			log.Error(err, "Failed syncing resources...")
 			return r.ManageError(instance, err, log)
 		}
 	}
 	if watcher, ok := r.(WatchReconciler); ok {
-		log.Info("Starting watching resources...")
+		log.Info("Started watching resources...")
 		if err := watcher.RefreshWatch(request); err != nil {
-			log.Error(err, "Failing watching resources...")
+			log.Error(err, "Failed watching resources...")
 			return r.ManageError(instance, err, log)
 		}
 	}

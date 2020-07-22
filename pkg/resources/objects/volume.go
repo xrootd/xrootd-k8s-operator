@@ -96,6 +96,11 @@ func (ivs *InstanceVolumeSet) addDataPVVolumeMount(mountPath string) {
 }
 
 func getDataPVClaim(xrootd *v1alpha1.Xrootd) v1.PersistentVolumeClaim {
+	defer func() {
+		if err := recover(); err != nil {
+			rLog.WithName("volume.DataPVClaim").Error(err.(error), "failed parsing storage capacity", "xrootd", xrootd)
+		}
+	}()
 	return v1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: getDataPVName(xrootd.Name),

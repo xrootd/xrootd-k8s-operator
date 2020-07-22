@@ -1,7 +1,6 @@
 package watch
 
 import (
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
@@ -16,11 +15,11 @@ type GroupedRequestWatcher struct {
 
 var _ Watcher = &GroupedRequestWatcher{}
 
-var log = logf.Log.WithName("GroupedRequestWatcher")
-
 // Watch implements watch.Watcher
 func (grw *GroupedRequestWatcher) Watch(requests <-chan reconcile.Request) error {
+	logger := log.WithName("GroupedRequestWatcher.Watch")
 	for request := range requests {
+		logger.Info("Refreshing watch...", "request", request)
 		key := request.String()
 		channel := grw.getDistinctRequestChannel(key)
 		if len(channel) < cap(channel) {
