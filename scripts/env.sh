@@ -6,13 +6,12 @@ DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd -P)
 
 # K8S-cluster related
 export KUBE_CONTEXT="$(kubectl config current-context)"
+export KUBE_CLUSTER_PROVIDER=""
 if [[ -n "$KUBE_CONTEXT" ]]; then
     if echo -n "$KUBE_CONTEXT" | egrep -q "(minishift|:8443)"; then
         export KUBE_CLUSTER_PROVIDER=minishift
     elif echo -n "$KUBE_CONTEXT" | egrep -q "kind"; then
         export KUBE_CLUSTER_PROVIDER=kind
-    else
-        export KUBE_CLUSTER_PROVIDER=""
     fi
 fi
 
