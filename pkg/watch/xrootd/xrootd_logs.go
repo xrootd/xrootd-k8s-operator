@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/go-logr/logr"
 	"github.com/msoap/byline"
 	"github.com/pkg/errors"
 	xrootdv1alpha1 "github.com/xrootd/xrootd-k8s-operator/pkg/apis/xrootd/v1alpha1"
@@ -34,8 +35,9 @@ var _ watch.Watcher = LogsWatcher{}
 var log = logf.Log.WithName("XrootdLogsWatcher")
 
 func (lw LogsWatcher) Watch(requests <-chan reconcile.Request) error {
+	var reqLogger logr.Logger
 	for request := range requests {
-		reqLogger := log.WithValues("request", request, "component", lw.Component)
+		reqLogger = log.WithValues("request", request, "component", lw.Component)
 
 		instance := &xrootdv1alpha1.Xrootd{}
 		if err := lw.reconciler.GetResourceInstance(request, instance); err != nil {
@@ -92,7 +94,9 @@ func (lw LogsWatcher) monitorXrootdStatus(request reconcile.Request, instance *x
 	} else if lw.Component == constant.XrootdRedirector {
 		instance.Status.RedirectorStatus = status
 	}
-	lw.reconciler.GetClient().Status().Update(context.TODO(), instance)
+	if err := lw.reconciler.GetClient().Status().Update(context.TODO(), instance); err != nil {
+		return errors.Wrap(err, "failed updating xrootd status")
+	}
 	return nil
 }
 
@@ -162,7 +166,10 @@ func (lw LogsWatcher) processXrootdPodLogs(pod *corev1.Pod, opt *corev1.PodLogOp
 		Status: status,
 		Reason: "Cmsd logs confirmed logged-in status",
 	})
-	lw.reconciler.GetClient().Status().Update(context.TODO(), pod)
+	if err = lw.reconciler.GetClient().Status().Update(context.TODO(), pod); err != nil {
+		reqLogger.Error(err, "failed updating pod status", "status", pod.Status)
+		resultChannel <- false
+	}
 
 	resultChannel <- result
 }

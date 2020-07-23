@@ -92,8 +92,12 @@ func (r *ReconcileXrootd) Reconcile(request reconcile.Request) (reconcile.Result
 // IsValid determines if a Xrootd instance is valid and initializes empty fields.
 func (r *ReconcileXrootd) IsValid(instance controllerutil.Object) (bool, error) {
 	xrootd := instance.(*xrootdv1alpha1.Xrootd)
-	xrootd.Spec.Redirector.Replicas = 1
-	xrootd.Spec.Worker.Replicas = 1
+	if xrootd.Spec.Redirector.Replicas == 0 {
+		xrootd.Spec.Redirector.Replicas = 1
+	}
+	if xrootd.Spec.Worker.Replicas == 0 {
+		xrootd.Spec.Worker.Replicas = 1
+	}
 	xrootd.Spec.Worker.Storage.Class = "standard"
 	return true, nil
 }
