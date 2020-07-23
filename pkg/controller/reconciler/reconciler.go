@@ -65,7 +65,7 @@ func (br BaseReconciler) GetConfig() *rest.Config {
 
 // IsBeingDeleted returns whether this object has been requested to be deleted
 func IsBeingDeleted(obj resource) bool {
-	return !obj.GetDeletionTimestamp().IsZero()
+	return !obj.GetDeletionTimestamp().IsZero() || obj.GetName() == ""
 }
 
 func (br *BaseReconciler) GetResourceInstance(request reconcile.Request, instance resource) error {

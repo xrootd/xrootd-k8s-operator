@@ -2,7 +2,9 @@ package xrootd
 
 import (
 	"context"
+	"io"
 	"regexp"
+	"strings"
 
 	"github.com/msoap/byline"
 	"github.com/pkg/errors"
@@ -90,6 +92,7 @@ func (lw LogsWatcher) monitorXrootdStatus(request reconcile.Request, instance *x
 	} else if lw.Component == constant.XrootdRedirector {
 		instance.Status.RedirectorStatus = status
 	}
+	lw.reconciler.GetClient().Status().Update(context.TODO(), instance)
 	return nil
 }
 
@@ -116,11 +119,21 @@ func (lw LogsWatcher) getXrootdOwnedPods(request reconcile.Request) (*corev1.Pod
 func (lw LogsWatcher) processXrootdPodLogs(pod *corev1.Pod, opt *corev1.PodLogOptions, clientset *kubernetes.Clientset, resultChannel chan<- bool) {
 	reqLogger := log.WithValues("pod", pod.Name, "component", lw.Component)
 
-	reader, err := k8sutil.GetPodLogStream(*pod, opt, clientset)
-	if err != nil {
-		reqLogger.Error(err, "unable to get pod stream", "options", opt)
-		resultChannel <- false
-		return
+	var err error
+	var reader io.ReadCloser
+	for {
+		reader, err = k8sutil.GetPodLogStream(*pod, opt, clientset)
+		if err != nil {
+			if strings.Contains(err.Error(), "ContainerCreating") {
+				reqLogger.V(1).Info("Container not started yet, retrying...", "error", err)
+			} else {
+				reqLogger.Error(err, "unable to get pod stream", "options", opt)
+				resultChannel <- false
+				return
+			}
+		} else {
+			break
+		}
 	}
 	defer reader.Close()
 
@@ -128,20 +141,15 @@ func (lw LogsWatcher) processXrootdPodLogs(pod *corev1.Pod, opt *corev1.PodLogOp
 
 	var regex *regexp.Regexp
 	if lw.Component == constant.XrootdRedirector {
-		regex, err = regexp.Compile(`Protocol: redirector..+ logged in.$`)
+		regex = regexp.MustCompile(`Protocol: redirector..+ logged in.$`)
 	} else if lw.Component == constant.XrootdWorker {
-		regex, err = regexp.Compile(`Protocol: Logged into .+$`)
-	}
-	if err != nil {
-		log.Error(err, "regex compile error", "component", lw.Component)
-		resultChannel <- false
-		return
+		regex = regexp.MustCompile(`Protocol: Logged into .+$`)
 	}
 
-	log.Info("Grepping and reading...", "regex", regex)
+	reqLogger.Info("Grepping and reading...", "regex", regex)
 	buffer := make([]byte, 50)
 	read, err := lineReader.GrepByRegexp(regex).Read(buffer)
-	log.Info("Read to buffer", "length", read, "buffer", buffer)
+	reqLogger.V(1).Info("Read to buffer", "length", read, "buffer", buffer)
 
 	result := read > 0
 
@@ -154,6 +162,7 @@ func (lw LogsWatcher) processXrootdPodLogs(pod *corev1.Pod, opt *corev1.PodLogOp
 		Status: status,
 		Reason: "Cmsd logs confirmed logged-in status",
 	})
+	lw.reconciler.GetClient().Status().Update(context.TODO(), pod)
 
 	resultChannel <- result
 }

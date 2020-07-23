@@ -39,8 +39,14 @@ func (grw *GroupedRequestWatcher) getDistinctRequestChannel(key string) chan<- r
 }
 
 func (grw *GroupedRequestWatcher) startNewRequestChannel(key string) chan<- reconcile.Request {
+	logger := log.WithName("GroupedRequestWatcher.subWatcher.Watch").WithValues("key", key)
 	channel := make(chan reconcile.Request, 1)
-	go grw.subWatcher.Watch(channel)
+	go func() {
+		if err := grw.subWatcher.Watch(channel); err != nil {
+			logger.Error(err, "SubWatcher errored!")
+		}
+		logger.Info("SubWatcher finished watching...")
+	}()
 
 	grw.activeChannels[key] = channel
 

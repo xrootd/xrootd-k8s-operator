@@ -4,11 +4,14 @@ import (
 	"sync"
 
 	"github.com/xrootd/xrootd-k8s-operator/pkg/watch"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/inject"
 )
 
 const defaultChannelCapacity = 12
+
+var log = logf.Log.WithName("reconciler")
 
 type WatchReconciler interface {
 	RefreshWatch(request reconcile.Request) error
@@ -69,8 +72,14 @@ func (wm *WatchManager) StartWatching() error {
 }
 
 func (wm *WatchManager) doWatch(watcher watch.Watcher) {
+	logger := log.WithName("watcher").WithName("doWatch")
 	dst := make(chan reconcile.Request, defaultChannelCapacity)
-	go watcher.Watch(dst)
+	go func() {
+		if err := watcher.Watch(dst); err != nil {
+			logger.Error(err, "Watcher errored!")
+		}
+		logger.Info("Watcher finished watching...")
+	}()
 	wm.dest = append(wm.dest, dst)
 }
 
