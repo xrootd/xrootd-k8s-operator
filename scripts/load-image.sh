@@ -8,7 +8,7 @@ usage() {
 Usage: `basename $0` <options> [image name]
 
   Available options:
-    -p <provider> Cluster Provider (kind/k3s)
+    -p <provider> Cluster Provider (kind/k3s/minishift)
     -c <cluster> Cluster Name
     -v           Verbose mode
     -h           Show Usage
@@ -35,7 +35,7 @@ while getopts vhp:c: c ; do
     esac
 done
 
-if [ -z "$provider" ] || (printf '%s\n' "$provider" | egrep -qv "^(kind|k3s)$"); then
+if [ -z "$provider" ] || (printf '%s\n' "$provider" | egrep -qv "^(kind|k3s|minishift)$"); then
     echo "[error] Provide valid Cluster provider name!"
     usage
     exit 2
@@ -56,6 +56,14 @@ if [ -z "$image" ] || (printf '%s\n' "$image" | egrep -qv "^($RE_IMAGE_WORD/)?$R
     exit 2
 fi
 
+_load_minishift() {
+    registry="$(minishift openshift registry)"
+    grep "$registry" ~/.docker/config.json -q || docker login -u $(oc whoami) -p $(oc whoami -t) "$registry"
+    new_image="$registry/$image"
+    docker tag $image $new_image
+    echo -n "docker push $new_image"
+}
+
 cmd=""
 case "$provider" in
     kind)
@@ -69,6 +77,9 @@ case "$provider" in
         if [ -n "$cluster" ]; then
             cmd="$cmd --cluster $cluster"
         fi
+        ;;
+    minishift)
+        cmd="$(_load_minishift)"
         ;;
 esac
 

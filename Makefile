@@ -7,7 +7,7 @@ SCRIPTS_DIR := $(ROOT_DIR)/scripts
 ENVFILE := $(SCRIPTS_DIR)/env.sh
 RELEASE_SUPPORT := $(SCRIPTS_DIR)/release-support.sh
 
-CLUSTER_PROVIDER := kind
+CLUSTER_PROVIDER := minishift
 OPERATOR_SDK := operator-sdk
 IMAGE_LOADER := $(SCRIPTS_DIR)/load-image.sh -p $(CLUSTER_PROVIDER) $(VERBOSE_SHORT_ARG)
 ifdef CLUSTER_NAME

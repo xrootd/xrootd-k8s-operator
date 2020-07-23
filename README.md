@@ -32,7 +32,7 @@ A Kubernetes operator to deploy [Xrootd](https://github.com/xrootd/xrootd) at sc
 - Run `make code` to run code format and generate code via operator-sdk.
 - Run `make build` to build operator image from scratch and loads it in the k8s cluster. Most of the time, this is sufficient to run if there has been no change in CRs ([pkg/apis](pkg/apis))
 - The build command can be configured with the cluster's name and provider to target where the built operator image will be loaded. Set the following environment variables:
-  - `CLUSTER_PROVIDER=(kind/k3s)`
+  - `CLUSTER_PROVIDER=(kind/k3s/minishift)`
   - `CLUSTER_NAME=<cluster name>`
 
 #### Install operator

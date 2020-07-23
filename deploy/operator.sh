@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env sh
 
 # Install and uninstall Xrootd operator
 
@@ -24,14 +24,15 @@ EOD
 DIR=$(cd "$(dirname "$0")"; pwd -P)
 
 echo -n "Check kubeconfig context - "
-kubectl config current-context || {
+kubectx=$(kubectl config current-context) || {
   echo "Set a context (kubectl use-context <context>) out of the following:"
   echo
   kubectl config get-contexts
   exit 1
 }
-echo ""
+echo $kubectx
 
+$(echo -n "$kubectx" | egrep -q "(minishift|:8443)"); IS_OPENSHIFT=$(if [ $? -eq 0 ]; then echo -n true; else echo -n false; fi)
 DEV_INSTALL=false
 UNINSTALL=false
 PURGE=true
@@ -53,8 +54,7 @@ done
 
 shift $(($OPTIND - 1))
 
-if [ "$UNINSTALL" = true ]; then
-
+if [ $UNINSTALL = true ]; then
   kubectl delete deployment,role,rolebinding,serviceaccount xrootd-operator
   kubectl delete crds xrootds.xrootd.org
 
@@ -62,20 +62,36 @@ if [ "$UNINSTALL" = true ]; then
   exit 0
 fi
 
-if [ "$DEV_INSTALL" = true ]; then
+if [ $DEV_INSTALL = true ]; then
   MANIFESTS_DIR=$(dirname "$DIR")
 else
   MANIFESTS_DIR="https://raw.githubusercontent.com/xrootd/xrootd-k8s-operator/master"
 fi
 
-kapply="kubectl apply -n $NAMESPACE -f "
+if [ $IS_OPENSHIFT = true ]; then
+  echo "PS: Ensure 'oc' binary is in path"
+  kapply="oc apply -f"
+else
+  kapply="kubectl apply -n $NAMESPACE -f"
+fi
 
 echo "....... Applying CRDs ......."
-$kapply "$MANIFESTS_DIR"/deploy/crds/xrootd.org_xrootds_crd.yaml
+crd_yml="$MANIFESTS_DIR"/deploy/crds/xrootd.org_xrootds_crd.yaml
+if [ $DEV_INSTALL = false ]; then
+  down_path=/tmp/xrootd.org_xrootds_crd.yaml
+  wget $crd_yml -O $down_path
+  crd_yml=$down_path
+fi
+crd_code=$(if [ $IS_OPENSHIFT = true ]; then sed 's|apiextensions.k8s.io/v1|apiextensions.k8s.io/v1beta1|' $crd_yml; else cat $crd_yml; fi)
+$kapply - << EOD
+$crd_code
+EOD
+
 echo "....... Applying Rules and Service Account ....."
 $kapply "$MANIFESTS_DIR"/deploy/service_account.yaml
 $kapply "$MANIFESTS_DIR"/deploy/role.yaml
 $kapply "$MANIFESTS_DIR"/deploy/role_binding.yaml
+
 echo "....... Applying Operator ......."
 $kapply "$MANIFESTS_DIR"/deploy/operator.yaml
 
