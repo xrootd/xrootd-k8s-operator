@@ -3,18 +3,29 @@
 # Environment variables used in development. This file is sourced in the other scripts.
 
 DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd -P)
-. $DIR/release-support.sh
+
+# K8S-cluster related
+export KUBE_CONTEXT="$(kubectl config current-context)"
+if [[ -n "$KUBE_CONTEXT" ]]; then
+    if echo -n "$KUBE_CONTEXT" | egrep -q "(minishift|:8443)"; then
+        export KUBE_CLUSTER_PROVIDER=minishift
+    elif echo -n "$KUBE_CONTEXT" | egrep -q "kind"; then
+        export KUBE_CLUSTER_PROVIDER=kind
+    else
+        export KUBE_CLUSTER_PROVIDER=""
+    fi
+fi
 
 ## General vars
 export XROOTD_OPERATOR_NAME="xrootd-operator"
 export XROOTD_OPERATOR_VERSION=$(awk '$1 == "Version" {gsub(/"/, "", $3); print $3}' version/version.go)
-export XROOTD_OPERATOR_IMAGE_VERSION="$(getVersion)"
+export XROOTD_OPERATOR_IMAGE_VERSION="$(. $DIR/release-support.sh ; getVersion)"
 
 ## Container Image vars
 export XROOTD_OPERATOR_IMAGE_REPO="qserv/$XROOTD_OPERATOR_NAME"
 export XROOTD_OPERATOR_IMAGE_TAG="$XROOTD_OPERATOR_IMAGE_VERSION"
 export XROOTD_OPERATOR_IMAGE_REGISTRY=""
-if [[ $CLUSTER_PROVIDER == "minishift" ]]; then
+if [[ $KUBE_CLUSTER_PROVIDER == "minishift" ]]; then
     export XROOTD_OPERATOR_IMAGE_REGISTRY="$(minishift openshift registry)"
 fi
 export XROOTD_OPERATOR_IMAGE="$XROOTD_OPERATOR_IMAGE_REGISTRY$XROOTD_OPERATOR_IMAGE_REPO:$XROOTD_OPERATOR_IMAGE_TAG"

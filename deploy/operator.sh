@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 # Install and uninstall Xrootd operator
 
@@ -22,17 +22,20 @@ EOD
 }
 
 DIR=$(cd "$(dirname "$0")"; pwd -P)
+ROOT_DIR=$(dirname "$DIR")
 
-echo -n "Check kubeconfig context - "
-kubectx=$(kubectl config current-context) || {
+. $ROOT_DIR/scripts/env.sh
+
+if [[ -z $KUBE_CONTEXT ]]; then
   echo "Set a context (kubectl use-context <context>) out of the following:"
   echo
   kubectl config get-contexts
   exit 1
-}
-echo $kubectx
+else
+  echo "Current K8S context - $KUBE_CONTEXT"
+fi
 
-$(echo -n "$kubectx" | egrep -q "(minishift|:8443)"); IS_OPENSHIFT=$(if [ $? -eq 0 ]; then echo -n true; else echo -n false; fi)
+IS_OPENSHIFT=$(if [ $KUBE_CLUSTER_PROVIDER == minishift ]; then echo -n true; else echo -n false; fi)
 DEV_INSTALL=false
 UNINSTALL=false
 PURGE=true
@@ -63,7 +66,7 @@ if [ $UNINSTALL = true ]; then
 fi
 
 if [ $DEV_INSTALL = true ]; then
-  MANIFESTS_DIR=$(dirname "$DIR")
+  MANIFESTS_DIR="$ROOT_DIR"
 else
   MANIFESTS_DIR="https://raw.githubusercontent.com/xrootd/xrootd-k8s-operator/master"
 fi

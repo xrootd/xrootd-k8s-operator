@@ -64,6 +64,14 @@ _load_minishift() {
     echo -n "docker push $new_image"
 }
 
+if [ -n "$DOCKER_HOST" ]; then
+    cat << EOD
+Docker is configured to reuse remote docker daemon.
+Exiting, assuming image is already built and loaded in the provided cluster.
+EOD
+    exit
+fi
+
 cmd=""
 case "$provider" in
     kind)
