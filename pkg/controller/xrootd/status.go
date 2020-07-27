@@ -2,6 +2,7 @@ package xrootd
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/pkg/errors"
 	xrootdv1alpha1 "github.com/xrootd/xrootd-k8s-operator/pkg/apis/xrootd/v1alpha1"
@@ -18,7 +19,7 @@ func (r *ReconcileXrootd) UpdateStatus(instance controllerutil.Object) error {
 	unreadyPods := make([]string, workerSize)
 	workerPrefName := utils.GetObjectName(constant.XrootdWorker, xrootd.Name)
 	for i := 0; i < workerSize; i++ {
-		unreadyPods = append(unreadyPods, utils.SuffixName(string(workerPrefName), string(i)))
+		unreadyPods = append(unreadyPods, utils.SuffixName(string(workerPrefName), strconv.Itoa(i)))
 	}
 	xrootd.Status.WorkerStatus = xrootdv1alpha1.MemberStatus{
 		Size:    workerSize,
@@ -31,7 +32,7 @@ func (r *ReconcileXrootd) UpdateStatus(instance controllerutil.Object) error {
 	unreadyPods = make([]string, redirectorSize)
 	redirectorPrefName := utils.GetObjectName(constant.XrootdRedirector, xrootd.Name)
 	for i := 0; i < redirectorSize; i++ {
-		unreadyPods = append(unreadyPods, utils.SuffixName(string(redirectorPrefName), string(i)))
+		unreadyPods = append(unreadyPods, utils.SuffixName(string(redirectorPrefName), strconv.Itoa(i)))
 	}
 	xrootd.Status.RedirectorStatus = xrootdv1alpha1.MemberStatus{
 		Size:    redirectorSize,
