@@ -65,6 +65,9 @@ var _ reconciler.SyncReconciler = &ReconcileXrootd{}
 // blank assignment to verify that ReconcileXrootd implements reconciler.WatchReconciler
 var _ reconciler.WatchReconciler = &ReconcileXrootd{}
 
+// blank assignment to verify that ReconcileXrootd implements reconciler.StatusReconciler
+var _ reconciler.StatusReconciler = &ReconcileXrootd{}
+
 // ReconcileXrootd reconciles a Xrootd object
 type ReconcileXrootd struct {
 	reconciler.BaseReconciler

@@ -5,6 +5,7 @@ import (
 	"io"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/go-logr/logr"
 	"github.com/msoap/byline"
@@ -16,9 +17,11 @@ import (
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/k8sutil"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/types"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/watch"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
+	k8stypes "k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -33,6 +36,8 @@ type LogsWatcher struct {
 var _ watch.Watcher = LogsWatcher{}
 
 var log = logf.Log.WithName("XrootdLogsWatcher")
+
+const waitMemberReadyDelay = 5 * time.Second
 
 func (lw LogsWatcher) Watch(requests <-chan reconcile.Request) error {
 	var reqLogger logr.Logger
@@ -98,6 +103,42 @@ func (lw LogsWatcher) monitorXrootdStatus(request reconcile.Request, instance *x
 		return errors.Wrap(err, "failed updating xrootd status")
 	}
 	return nil
+}
+
+func (lw LogsWatcher) getXrootdOwnedStatefulSet(request reconcile.Request) (*appsv1.StatefulSet, error) {
+	ss := &appsv1.StatefulSet{}
+	ssName := k8stypes.NamespacedName{
+		Namespace: request.Namespace,
+		Name:      string(utils.GetObjectName(lw.Component, request.Name)),
+	}
+	if err := lw.reconciler.GetClient().Get(context.TODO(), ssName, ss); err != nil {
+		return nil, errors.Wrap(err, "failed to get the statefulset")
+	}
+	return ss, nil
+}
+
+func (lw LogsWatcher) obtainLogsOfAllPods(request reconcile.Request, instance *xrootdv1alpha1.Xrootd, resultChannel chan<- bool) {
+	donePods := 0
+	var totalPods int
+	if lw.Component == constant.XrootdRedirector {
+		totalPods = int(instance.Spec.Redirector.Replicas)
+	} else if lw.Component == constant.XrootdWorker {
+		totalPods = int(instance.Spec.Worker.Replicas)
+	}
+	for {
+		if donePods == totalPods {
+			break
+		}
+		time.Sleep(waitMemberReadyDelay)
+		ss, err := lw.getXrootdOwnedStatefulSet(request)
+		if err != nil {
+			continue
+		}
+		readyPods := int(ss.Status.ReadyReplicas)
+		for i := donePods; i < readyPods; i++ {
+
+		}
+	}
 }
 
 func (lw LogsWatcher) getXrootdOwnedPods(request reconcile.Request) (*corev1.PodList, error) {
