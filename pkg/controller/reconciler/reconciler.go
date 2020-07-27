@@ -128,6 +128,13 @@ func Reconcile(r Reconciler, request reconcile.Request, instance resource, log l
 			return r.ManageError(instance, err, log)
 		}
 	}
+	if statusReconciler, ok := r.(StatusReconciler); ok {
+		log.Info("Started updating status of instance...")
+		if err := statusReconciler.UpdateStatus(instance); err != nil {
+			log.Error(err, "Failed updating status...")
+			return r.ManageError(instance, err, log)
+		}
+	}
 
 	return r.ManageSuccess(instance, log)
 }
