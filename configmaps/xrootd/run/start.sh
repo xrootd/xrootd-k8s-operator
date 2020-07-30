@@ -48,4 +48,4 @@ export COMPONENT_NAME
 #
 echo "Start $service as $(whoami) user"
 cmd="$service -c $XROOTD_CONFIG -n $COMPONENT_NAME"
-$cmd
+exec $cmd
