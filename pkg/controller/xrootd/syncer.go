@@ -4,6 +4,7 @@ import (
 	"reflect"
 
 	"github.com/RHsyseng/operator-utils/pkg/resource"
+	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
 	"github.com/RHsyseng/operator-utils/pkg/resource/read"
 	"github.com/RHsyseng/operator-utils/pkg/resource/write"
 	xrootdv1alpha1 "github.com/xrootd/xrootd-k8s-operator/pkg/apis/xrootd/v1alpha1"
@@ -30,12 +31,16 @@ func (r *ReconcileXrootd) SyncResources(instance controllerutil.Object) error {
 		return err
 	}
 	writer := write.New(r.GetClient()).WithOwnerController(xrootd, r.GetScheme())
-	deltaMap := comparator.GetComparator().Compare(deployed, irs.GetResources().GetK8SResources())
+	requested := irs.GetResources().GetK8SResources()
+	requestedMap := compare.NewMapBuilder().Add(requested...).ResourceMap()
+	deltaMap := comparator.GetComparator().Compare(deployed, requestedMap)
 	for resType, delta := range deltaMap {
+		logger := log.WithValues("type", resType)
 		if !delta.HasChanges() {
-			log.Info("No changes detected")
+			logger.Info("No changes detected")
+			continue
 		}
-		log.Info("Processing delta", "create", len(delta.Added), "update", len(delta.Updated), "delete", len(delta.Removed), "type", resType)
+		logger.Info("Processing delta", "create", len(delta.Added), "update", len(delta.Updated), "delete", len(delta.Removed))
 		added, err := writer.AddResources(delta.Added)
 		if err != nil {
 			return err
@@ -49,7 +54,7 @@ func (r *ReconcileXrootd) SyncResources(instance controllerutil.Object) error {
 			return err
 		}
 		if added || updated || removed {
-			log.Info("Executed changes", "added", added, "updated", updated, "removed", removed)
+			logger.Info("Executed changes", "added", added, "updated", updated, "removed", removed)
 		}
 	}
 	// lockedresources, err := irs.ToLockedResources()

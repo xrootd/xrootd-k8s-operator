@@ -1,8 +1,6 @@
 package resources
 
 import (
-	"reflect"
-
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/apis/xrootd/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -71,14 +69,10 @@ func (res Resources) GetObjects() []controllerutil.Object {
 	return objects
 }
 
-func (res Resources) GetK8SResources() map[reflect.Type][]resource.KubernetesResource {
-	objects := make(map[reflect.Type][]resource.KubernetesResource)
-	for _, item := range res {
-		key := reflect.TypeOf(item.Object)
-		if _, ok := objects[key]; !ok {
-			objects[key] = make([]resource.KubernetesResource, 0)
-		}
-		objects[key] = append(objects[key], item.Object)
+func (res Resources) GetK8SResources() []resource.KubernetesResource {
+	objects := make([]resource.KubernetesResource, len(res))
+	for index, item := range res {
+		objects[index] = item.Object
 	}
 	return objects
 }
