@@ -150,18 +150,9 @@ func (lw LogsWatcher) asyncCheckPodStatus(pod *corev1.Pod, opt *corev1.PodLogOpt
 		reqLogger.Error(err, "unable to process pod logs")
 	}
 
-	status := corev1.ConditionFalse
-	if isReady {
-		status = corev1.ConditionTrue
+	if err := k8sutil.UpdatePodConditionWithBool(pod, constant.XrootdPodConnection, &isReady, "Cmsd logs confirmed logged-in status", lw.reconciler.GetClient()); err != nil {
+		reqLogger.Error(err, "failed updating pod status", "status", pod.Status)
 	}
-	pod.Status.Conditions = append(pod.Status.Conditions, corev1.PodCondition{
-		Type:   constant.XrootdPodConnection,
-		Status: status,
-		Reason: "Cmsd logs confirmed logged-in status",
-	})
-	// if err = lw.reconciler.GetClient().Status().Update(context.TODO(), pod); err != nil {
-	// 	reqLogger.Error(err, "failed updating pod status", "status", pod.Status)
-	// }
 
 	resultChannel <- podStatus{
 		podName: pod.Name,
