@@ -76,24 +76,33 @@ func (lw LogsWatcher) monitorXrootdStatus(request reconcile.Request) error {
 		} else {
 			unreadyPods = instance.Status.WorkerStatus.Unready
 		}
-		if len(unreadyPods) == 0 {
+		countPods := len(unreadyPods)
+		if countPods == 0 {
 			break
 		}
-		if err := lw.updateInstanceStatus(instance, lw.obtainLogsOfAllPods(request, unreadyPods, clientset)); err != nil {
-			return errors.Wrap(err, "failed updating xrootd status")
+		if err := lw.updateInstanceStatus(instance, countPods, lw.obtainLogsOfAllPods(request, unreadyPods, clientset)); err != nil {
+			reqLogger.Error(err, "failed updating xrootd status")
 		}
 	}
 	return nil
 }
 
-func (lw LogsWatcher) updateInstanceStatus(instance *xrootdv1alpha1.Xrootd, resultChannel <-chan podStatus) error {
+func (lw LogsWatcher) updateInstanceStatus(instance *xrootdv1alpha1.Xrootd, countPods int, resultChannel <-chan podStatus) error {
+	logger := log.WithValues("instance", instance.Name, "component", lw.Component)
+	logger.Info("Waiting for pod results...", "podCount", countPods)
 	unreadyPods := make([]string, 0)
 	readyPods := make([]string, 0)
+	i := 0
 	for resultStatus := range resultChannel {
+		logger.Info("Obtained pod log result!", "iteration", i, "pod", resultStatus.podName, "isReady", resultStatus.isReady)
 		if resultStatus.isReady {
 			readyPods = append(readyPods, resultStatus.podName)
 		} else {
 			unreadyPods = append(unreadyPods, resultStatus.podName)
+		}
+		i++
+		if i == countPods {
+			break
 		}
 	}
 	status := utils.NewMemberStatus(readyPods, unreadyPods)
@@ -111,7 +120,7 @@ func (lw LogsWatcher) updateInstanceStatus(instance *xrootdv1alpha1.Xrootd, resu
 func (lw LogsWatcher) obtainLogsOfAllPods(request reconcile.Request, unreadyPods []string, clientset *kubernetes.Clientset) <-chan podStatus {
 	totalPods := len(unreadyPods)
 	opt := &corev1.PodLogOptions{
-		Follow:    true,
+		Follow:    false,
 		Container: string(constant.Cmsd),
 	}
 	resultChannel := make(chan podStatus, totalPods)
@@ -127,30 +136,49 @@ func (lw LogsWatcher) obtainLogsOfAllPods(request reconcile.Request, unreadyPods
 				isReady: false,
 			}
 		} else {
-			go lw.processXrootdPodLogs(pod, opt, clientset, resultChannel)
+			go lw.asyncCheckPodStatus(pod, opt, clientset, resultChannel)
 		}
 	}
 	return resultChannel
 }
 
-func (lw LogsWatcher) processXrootdPodLogs(pod *corev1.Pod, opt *corev1.PodLogOptions, clientset *kubernetes.Clientset, resultChannel chan<- podStatus) {
+func (lw LogsWatcher) asyncCheckPodStatus(pod *corev1.Pod, opt *corev1.PodLogOptions, clientset *kubernetes.Clientset, resultChannel chan<- podStatus) {
 	reqLogger := log.WithValues("pod", pod.Name, "component", lw.Component)
 
-	unreadyStatus := podStatus{
-		podName: pod.Name,
-		isReady: false,
+	isReady, err := lw.processXrootdPodLogs(pod, opt, clientset, reqLogger)
+	if err != nil {
+		reqLogger.Error(err, "unable to process pod logs")
 	}
 
-	var err error
+	status := corev1.ConditionFalse
+	if isReady {
+		status = corev1.ConditionTrue
+	}
+	pod.Status.Conditions = append(pod.Status.Conditions, corev1.PodCondition{
+		Type:   constant.XrootdPodConnection,
+		Status: status,
+		Reason: "Cmsd logs confirmed logged-in status",
+	})
+	// if err = lw.reconciler.GetClient().Status().Update(context.TODO(), pod); err != nil {
+	// 	reqLogger.Error(err, "failed updating pod status", "status", pod.Status)
+	// }
+
+	resultChannel <- podStatus{
+		podName: pod.Name,
+		isReady: isReady,
+	}
+}
+
+func (lw LogsWatcher) processXrootdPodLogs(pod *corev1.Pod, opt *corev1.PodLogOptions, clientset *kubernetes.Clientset, logger logr.Logger) (result bool, err error) {
+	result = false
 	var reader io.ReadCloser
 	for {
 		reader, err = k8sutil.GetPodLogStream(*pod, opt, clientset)
 		if err != nil {
 			if strings.Contains(err.Error(), "ContainerCreating") {
-				reqLogger.V(1).Info("Container not started yet, retrying...", "error", err)
+				logger.V(1).Info("Container not started yet, retrying...", "error", err)
 			} else {
-				reqLogger.Error(err, "unable to get pod stream", "options", opt)
-				resultChannel <- unreadyStatus
+				err = errors.Wrap(err, "unable to get pod stream")
 				return
 			}
 		} else {
@@ -163,34 +191,25 @@ func (lw LogsWatcher) processXrootdPodLogs(pod *corev1.Pod, opt *corev1.PodLogOp
 
 	var regex *regexp.Regexp
 	if lw.Component == constant.XrootdRedirector {
-		regex = regexp.MustCompile(`Protocol: redirector..+ logged in.$`)
+		regex = regexp.MustCompile(`Protocol: redirector..+ logged in.\n`)
 	} else if lw.Component == constant.XrootdWorker {
-		regex = regexp.MustCompile(`Protocol: Logged into .+$`)
+		regex = regexp.MustCompile(`Protocol: Logged into .+\n`)
 	}
 
-	reqLogger.Info("Grepping and reading...", "regex", regex)
+	logger.Info("Grepping and reading...", "regex", regex)
 	buffer := make([]byte, 50)
 	read, err := lineReader.GrepByRegexp(regex).Read(buffer)
-	reqLogger.V(1).Info("Read to buffer", "length", read, "buffer", buffer)
-
-	result := read > 0
-
-	status := corev1.ConditionFalse
-	if result {
-		status = corev1.ConditionTrue
+	if err != nil {
+		if err == io.EOF {
+			err = nil
+		} else {
+			err = errors.Wrap(err, "unable to read")
+			return
+		}
 	}
-	pod.Status.Conditions = append(pod.Status.Conditions, corev1.PodCondition{
-		Type:   constant.XrootdPodConnection,
-		Status: status,
-		Reason: "Cmsd logs confirmed logged-in status",
-	})
-	if err = lw.reconciler.GetClient().Status().Update(context.TODO(), pod); err != nil {
-		reqLogger.Error(err, "failed updating pod status", "status", pod.Status)
-		resultChannel <- unreadyStatus
-	}
-
-	unreadyStatus.isReady = result
-	resultChannel <- unreadyStatus
+	logger.Info("Read to buffer", "read", read, "buffer", string(buffer))
+	result = read > 0
+	return
 }
 
 func NewLogsWatcher(component types.ComponentName, reconciler reconciler.Reconciler) watch.Watcher {
