@@ -51,6 +51,8 @@ func (lw LogsWatcher) Watch(requests <-chan reconcile.Request) error {
 		}
 		if err := lw.monitorXrootdStatus(request); err != nil {
 			reqLogger.Error(err, "Failed to monitor xrootd cluster...")
+		} else {
+			reqLogger.Info("Cluster is running fine!")
 		}
 	}
 	return nil
@@ -187,7 +189,7 @@ func (lw LogsWatcher) processXrootdPodLogs(pod *corev1.Pod, opt *corev1.PodLogOp
 		regex = regexp.MustCompile(`Protocol: Logged into .+\n`)
 	}
 
-	logger.Info("Grepping and reading...", "regex", regex)
+	logger.V(1).Info("Grepping and reading...", "regex", regex)
 	buffer := make([]byte, 50)
 	read, err := lineReader.GrepByRegexp(regex).Read(buffer)
 	if err != nil {
@@ -198,7 +200,7 @@ func (lw LogsWatcher) processXrootdPodLogs(pod *corev1.Pod, opt *corev1.PodLogOp
 			return
 		}
 	}
-	logger.Info("Read to buffer", "read", read, "buffer", string(buffer))
+	logger.V(1).Info("Read to buffer", "read", read, "buffer", string(buffer))
 	result = read > 0
 	return
 }
