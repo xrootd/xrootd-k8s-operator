@@ -34,6 +34,7 @@ spec:
         kind: Xrootd
         name: xrootds.xrootd.org
         version: v1alpha1
+        displayName: Xrootd Cluster
         statusDescriptors:
           - description: Current status of redirector pods
             displayName: Redirectors Status
