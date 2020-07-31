@@ -16,9 +16,9 @@ spec:
       containers:
         - name: xrootd-operator
           # Replace this with the built image name
-          image: qserv/xrootd-operator:0.0.1-ecdccc6-dirty
+          image: qserv/xrootd-operator:0.0.1-41641fa-dirty
           command:
-          - xrootd-operator
+          - xrootd-k8s-operator
           imagePullPolicy: IfNotPresent
           env:
             - name: WATCH_NAMESPACE

@@ -97,7 +97,7 @@ spec:
               spec:
                 containers:
                   - command:
-                      - xrootd-operator
+                      - xrootd-k8s-operator
                     env:
                       - name: WATCH_NAMESPACE
                         valueFrom:
@@ -109,7 +109,7 @@ spec:
                             fieldPath: metadata.name
                       - name: OPERATOR_NAME
                         value: xrootd-operator
-                    image: qserv/xrootd-operator:0.0.1-ecdccc6
+                    image: qserv/xrootd-operator:0.0.1-41641fa-dirty
                     imagePullPolicy: IfNotPresent
                     name: xrootd-operator
                     resources: {}
@@ -128,7 +128,7 @@ spec:
               spec:
                 containers:
                   - command:
-                      - xrootd-operator
+                      - xrootd-k8s-operator
                     env:
                       - name: WATCH_NAMESPACE
                         valueFrom:
@@ -199,9 +199,22 @@ spec:
             - apiGroups:
                 - ""
               resources:
-                - pods
+                - pods/log
               verbs:
                 - get
+                - list
+            - apiGroups:
+                - ""
+              resources:
+                - pods/status
+              verbs:
+                - create
+                - delete
+                - get
+                - list
+                - patch
+                - update
+                - watch
             - apiGroups:
                 - apps
               resources:
