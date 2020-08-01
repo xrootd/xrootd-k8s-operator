@@ -77,6 +77,38 @@ spec:
           status:
             description: XrootdStatus defines the observed state of Xrootd
             properties:
+              conditions:
+                description: Condition keeps track of all cluster conditions, if they
+                  exist.
+                items:
+                  description: ClusterCondition represents one current condition of
+                    the xrootd cluster.
+                  properties:
+                    lastTransitionTime:
+                      description: Last time the condition transitioned from one status
+                        to another.
+                      type: string
+                    lastUpdateTime:
+                      description: The last time this condition was updated.
+                      type: string
+                    message:
+                      description: A human readable message indicating details about
+                        the transition.
+                      type: string
+                    reason:
+                      description: The reason for the condition's last transition.
+                      type: string
+                    status:
+                      description: Status of the condition, one of True, False, Unknown.
+                      type: string
+                    type:
+                      description: Type of cluster condition.
+                      type: string
+                  required:
+                  - status
+                  - type
+                  type: object
+                type: array
               currentVersion:
                 description: CurrentVersion is the current xrootd version
                 type: string
@@ -89,48 +121,67 @@ spec:
                 description: MemberStatus defines the observed status of Xrootd member
                   (worker/redirector)
                 properties:
-                  ready:
-                    description: Ready are the xrootd members that are ready to serve
-                      requests The member names are the same as the xrootd pod names
-                    items:
-                      type: string
-                    type: array
+                  pods:
+                    description: PodStatus defines the status of each of the member
+                      Pods for the specific component of xrootd cluster
+                    properties:
+                      ready:
+                        description: Ready are the xrootd members that are ready to
+                          serve requests The member names are the same as the xrootd
+                          pod names
+                        items:
+                          type: string
+                        type: array
+                      unready:
+                        description: Unready are the xrootd members not ready to serve
+                          requests
+                        items:
+                          type: string
+                        type: array
+                    required:
+                    - ready
+                    - unready
+                    type: object
                   size:
                     description: Size is the current size of the cluster
                     type: integer
-                  unready:
-                    description: Unready are the xrootd members not ready to serve
-                      requests
-                    items:
-                      type: string
-                    type: array
                 required:
+                - pods
                 - size
                 type: object
               workerStatus:
                 description: MemberStatus defines the observed status of Xrootd member
                   (worker/redirector)
                 properties:
-                  ready:
-                    description: Ready are the xrootd members that are ready to serve
-                      requests The member names are the same as the xrootd pod names
-                    items:
-                      type: string
-                    type: array
+                  pods:
+                    description: PodStatus defines the status of each of the member
+                      Pods for the specific component of xrootd cluster
+                    properties:
+                      ready:
+                        description: Ready are the xrootd members that are ready to
+                          serve requests The member names are the same as the xrootd
+                          pod names
+                        items:
+                          type: string
+                        type: array
+                      unready:
+                        description: Unready are the xrootd members not ready to serve
+                          requests
+                        items:
+                          type: string
+                        type: array
+                    required:
+                    - ready
+                    - unready
+                    type: object
                   size:
                     description: Size is the current size of the cluster
                     type: integer
-                  unready:
-                    description: Unready are the xrootd members not ready to serve
-                      requests
-                    items:
-                      type: string
-                    type: array
                 required:
+                - pods
                 - size
                 type: object
             required:
-            - currentVersion
             - phase
             - redirectorStatus
             - workerStatus

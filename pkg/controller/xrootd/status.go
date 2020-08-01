@@ -21,7 +21,7 @@ func (r *ReconcileXrootd) UpdateStatus(instance controllerutil.Object) error {
 	for i := 0; i < workerSize; i++ {
 		unreadyPods[i] = utils.SuffixName(string(workerPrefName), strconv.Itoa(i))
 	}
-	xrootd.Status.WorkerStatus = utils.NewMemberStatus([]string{}, unreadyPods)
+	xrootd.Status.WorkerStatus = xrootdv1alpha1.NewMemberStatus([]string{}, unreadyPods)
 
 	// Redirector nodes
 	redirectorSize := int(xrootd.Spec.Redirector.Replicas)
@@ -30,7 +30,7 @@ func (r *ReconcileXrootd) UpdateStatus(instance controllerutil.Object) error {
 	for i := 0; i < redirectorSize; i++ {
 		unreadyPods[i] = utils.SuffixName(string(redirectorPrefName), strconv.Itoa(i))
 	}
-	xrootd.Status.RedirectorStatus = utils.NewMemberStatus([]string{}, unreadyPods)
+	xrootd.Status.RedirectorStatus = xrootdv1alpha1.NewMemberStatus([]string{}, unreadyPods)
 
 	xrootd.Status.Phase = xrootdv1alpha1.ClusterPhaseCreating
 

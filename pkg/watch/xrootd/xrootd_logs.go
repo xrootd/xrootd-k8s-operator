@@ -12,7 +12,6 @@ import (
 	"github.com/pkg/errors"
 	xrootdv1alpha1 "github.com/xrootd/xrootd-k8s-operator/pkg/apis/xrootd/v1alpha1"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/controller/reconciler"
-	"github.com/xrootd/xrootd-k8s-operator/pkg/utils"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/constant"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/k8sutil"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/types"
@@ -66,17 +65,20 @@ func (lw LogsWatcher) monitorXrootdStatus(request reconcile.Request) error {
 	if err != nil {
 		return errors.Wrap(err, "unable to get kubernetes clientset")
 	}
+	var instance *xrootdv1alpha1.Xrootd
+
+	// infinite loop to monitor all pods of xrootd cluster
 	for {
 		time.Sleep(waitMemberReadyDelay)
-		instance := &xrootdv1alpha1.Xrootd{}
+		instance = &xrootdv1alpha1.Xrootd{}
 		if err := lw.reconciler.GetResourceInstance(request, instance); err != nil {
 			return errors.Wrap(err, "failed to refresh xrootd instance")
 		}
 		var unreadyPods []string
 		if lw.Component == constant.XrootdRedirector {
-			unreadyPods = instance.Status.RedirectorStatus.Unready
+			unreadyPods = instance.Status.RedirectorStatus.Pods.Unready
 		} else {
-			unreadyPods = instance.Status.WorkerStatus.Unready
+			unreadyPods = instance.Status.WorkerStatus.Pods.Unready
 		}
 		countPods := len(unreadyPods)
 		if countPods == 0 {
@@ -85,6 +87,12 @@ func (lw LogsWatcher) monitorXrootdStatus(request reconcile.Request) error {
 		if err := lw.updateInstanceStatus(instance, countPods, lw.obtainLogsOfAllPods(request, unreadyPods, clientset)); err != nil {
 			reqLogger.Error(err, "failed updating xrootd status")
 		}
+	}
+	// update the cluster phase to running
+	instance.Status.SetPhase(xrootdv1alpha1.ClusterPhaseRunning)
+	instance.Status.SetReadyCondition()
+	if err := lw.reconciler.GetClient().Status().Update(context.TODO(), instance); err != nil {
+		reqLogger.Error(err, "failed updating xrootd status")
 	}
 	return nil
 }
@@ -107,7 +115,7 @@ func (lw LogsWatcher) updateInstanceStatus(instance *xrootdv1alpha1.Xrootd, coun
 			break
 		}
 	}
-	status := utils.NewMemberStatus(readyPods, unreadyPods)
+	status := xrootdv1alpha1.NewMemberStatus(readyPods, unreadyPods)
 	if lw.Component == constant.XrootdWorker {
 		instance.Status.WorkerStatus = status
 	} else if lw.Component == constant.XrootdRedirector {
