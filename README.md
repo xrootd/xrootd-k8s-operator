@@ -45,13 +45,24 @@ A Kubernetes operator to deploy [Xrootd](https://github.com/xrootd/xrootd) at sc
 
 Xrootd Operator is integrated with OLM.
 
-- To generate OLM CSV manifest, run `./scripts/olm-generate-csv.sh`.
-- To build the operator bundle image, run `make bundle`.
+- Install [operator-courier](https://pypi.org/project/operator-courier) python library for linting of Operator Metadata and to push the application information to quay.io appregistry.
+- To generate OLM CSV manifest, run `make olm-generate`.
+- To push the operator bundle information to quay.io, run `make push-bundle`.
 
 ### Testing
 
 - **Unit Tests:** Run the unit tests with `make tests-unit`.
 - **Integration Tests:** Run the suite of e2e tests with `make tests-e2e`.
+
+### OpenShift Cluster
+
+- For local development, it's recommended to use [CodeReady Containers](https://code-ready.github.io/crc/) since it supports Openshift v4+. Minishift is a suitable alternative, however it only supports till OpenShift v3.
+- To test operator via scripted approach, `make dev-install` works.
+- To test operator using OLM, follow [testing guide](https://github.com/operator-framework/community-operators/blob/master/docs/testing-operators.md#testing-operator-deployment-on-kubernetes) for deployment using custom images.
+- Simply run `make push-bundle` to generate the CSV manifests and push to quay.io appregistry.
+
+> **NOTE:**
+> Minishift uses Kubernetes v1.11.x, so it only supports till OLM v0.14.x (because later OLM versions uses apiextensions.k8s.io/v1 for CRD manifests)
 
 ---
 
@@ -62,30 +73,6 @@ Xrootd Operator is integrated with OLM.
 - Example manifests to deploy Xrootd instance are at [manifests](manifests) folder.
 - To apply any manifest, simply use `kubectl apply`:
   - For example, to apply base sample manifest, run `kubectl apply -k manifests/base`
-
-### Openshift Origin UI
-
-- Make sure minishift is installed. Some steps to configure minishift beforehand are [mentioned here](https://github.com/operator-framework/operator-lifecycle-manager/issues/780#issuecomment-476321831).
-- Install the relevant manifests from [OLM releases](https://github.com/operator-framework/operator-lifecycle-manager/releases):
-
-```bash
-OLM_VERSION=0.14.1 # specify the version (read below note)
-oc create -f https://github.com/operator-framework/operator-lifecycle-manager/releases/download/$OLM_VERSION/crds.yaml
-oc create -f https://github.com/operator-framework/operator-lifecycle-manager/releases/download/$OLM_VERSION/olm.yaml
-```
-
-- Verify OLM is successfully installed using `operator-sdk olm status` (if operator-sdk is installed).
-
-- Run the Openshift Origin console using [the script](https://github.com/operator-framework/operator-lifecycle-manager/blob/master/scripts/run_console_local.sh):
-
-```bash
-curl -L https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/scripts/run_console_local.sh | bash -s
-```
-
-- Go to http://localhost:9000
-
-> **NOTE:**
-> Minishift <= v1.34.x uses Kubernetes v1.11.x which only supports till OLM v0.14.x (because later OLM versions uses apiextensions.k8s.io/v1 for CRD manifests)
 
 ---
 
