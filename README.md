@@ -19,10 +19,6 @@ A Kubernetes operator to deploy [Xrootd](https://github.com/xrootd/xrootd) at sc
 
 - TODO
 
-### Using Script
-
-- Run `curl -L https://raw.githubusercontent.com/xrootd/xrootd-k8s-operator/master/deploy/operator.sh | bash -s -- -n $NAMESPACE`
-
 ---
 
 ## Development

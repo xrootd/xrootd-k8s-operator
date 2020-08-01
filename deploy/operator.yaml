@@ -16,7 +16,7 @@ spec:
       containers:
         - name: xrootd-operator
           # Replace this with the built image name
-          image: qserv/xrootd-operator:0.0.1-41641fa-dirty
+          image: REPLACE_IMAGE
           command:
           - xrootd-k8s-operator
           imagePullPolicy: IfNotPresent

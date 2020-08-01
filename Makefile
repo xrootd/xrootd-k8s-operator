@@ -61,7 +61,6 @@ dev-install: ## Deploy the operator locally
 	@$(ROOT_DIR)/deploy/operator.sh -d $(VERBOSE_SHORT_ARG)
 
 build: build-image ## Build the Operator Image and load it in your cluster
-	sed "s|REPLACE_IMAGE|$(OPERATOR_IMAGE):$(VERSION)|g" "$(ROOT_DIR)/deploy/operator.yaml.tpl" > "$(ROOT_DIR)/deploy/operator.yaml"
 	@echo "Loading operator image in '$(if $(CLUSTER_NAME),$(CLUSTER_NAME),$(CLUSTER_PROVIDER))' cluster"
 	@$(IMAGE_LOADER) $(OPERATOR_IMAGE):$(VERSION)
 

@@ -86,9 +86,9 @@ if [ $DEV_INSTALL = false ]; then
   crd_yml=$down_path
 fi
 crd_code=$(if [ $IS_OPENSHIFT = true ]; then sed 's|apiextensions.k8s.io/v1|apiextensions.k8s.io/v1beta1|' $crd_yml; else cat $crd_yml; fi)
-$kapply - << EOD
+$kapply - << EOF
 $crd_code
-EOD
+EOF
 
 echo "....... Applying Rules and Service Account ....."
 $kapply "$MANIFESTS_DIR"/deploy/service_account.yaml
@@ -96,7 +96,10 @@ $kapply "$MANIFESTS_DIR"/deploy/role.yaml
 $kapply "$MANIFESTS_DIR"/deploy/role_binding.yaml
 
 echo "....... Applying Operator ......."
-$kapply "$MANIFESTS_DIR"/deploy/operator.yaml
+op_code=$(sed "s|REPLACE_IMAGE|$XROOTD_OPERATOR_IMAGE_REPO:$XROOTD_OPERATOR_IMAGE_TAG|g" "$MANIFESTS_DIR/deploy/operator.yaml")
+$kapply - << EOF
+$op_code
+EOF
 
 while ! kubectl wait --for=condition=Ready pods -l name=xrootd-operator -n "$NAMESPACE"
 do
