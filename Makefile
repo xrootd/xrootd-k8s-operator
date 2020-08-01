@@ -19,8 +19,8 @@ OPERATOR_IMAGE := $(shell . $(ENVFILE) ; echo $${XROOTD_OPERATOR_IMAGE})
 VERSION := $(shell . $(RELEASE_SUPPORT) ; getVersion)
 BUNDLE_MANIFEST_DIR := $(shell . $(ENVFILE) ; echo $${XROOTD_OPERATOR_BUNDLE_MANIFEST_DIR})
 
-.PHONY: help version push-bundle lint-bundle olm-generate uninstall code-vet code-fmt code \
-	code-gen build-image build dev-install clean
+.PHONY: help version bundle push-bundle lint-bundle olm-generate uninstall \
+	code-vet code-fmt code code-gen build-image build dev-install clean
 
 help: ## Display this help
 	@echo -e "Usage:\n  make \033[36m<target>\033[0m"
@@ -30,7 +30,9 @@ help: ## Display this help
 
 ##@ Application
 
-push-bundle: $(BUNDLE_MANIFEST_DIR) ## Pushes the OLM app bundle to quay.io
+bundle: $(BUNDLE_MANIFEST_DIR) ## Bundles the operator in OLM format
+
+push-bundle: bundle ## Pushes the OLM app bundle to quay.io
 	@$(SHELL) $(SCRIPTS_DIR)/olm-push-application.sh $(VERBOSE_SHORT_ARG)
 
 $(BUNDLE_MANIFEST_DIR):

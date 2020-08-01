@@ -96,7 +96,7 @@ $kapply "$MANIFESTS_DIR"/deploy/role.yaml
 $kapply "$MANIFESTS_DIR"/deploy/role_binding.yaml
 
 echo "....... Applying Operator ......."
-op_code=$(sed "s|REPLACE_IMAGE|$XROOTD_OPERATOR_IMAGE_REPO:$XROOTD_OPERATOR_IMAGE_TAG|g" "$MANIFESTS_DIR/deploy/operator.yaml")
+op_code=$(sed "s|REPLACE_IMAGE|$XROOTD_OPERATOR_FULL_IMAGE|g" "$MANIFESTS_DIR/deploy/operator.yaml")
 $kapply - << EOF
 $op_code
 EOF

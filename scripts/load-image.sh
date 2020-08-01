@@ -50,7 +50,7 @@ fi
 
 image="$1"
 
-if [ -z "$image" ] || (printf '%s\n' "$image" | egrep -qv "^($RE_IMAGE_WORD/)?$RE_IMAGE_WORD(:$RE_IMAGE_TAG_WORD)?$") ; then
+if [ -z "$image" ] || (printf '%s\n' "$image" | egrep -qv "^($RE_IMAGE_WORD/)?($RE_IMAGE_WORD/)?$RE_IMAGE_WORD(:$RE_IMAGE_TAG_WORD)?$") ; then
     echo "[error] Provide valid image name!"
     usage
     exit 2
