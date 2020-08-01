@@ -110,38 +110,7 @@ spec:
                             fieldPath: metadata.name
                       - name: OPERATOR_NAME
                         value: xrootd-operator
-                    image: qserv/xrootd-operator:0.0.1-41641fa-dirty
-                    imagePullPolicy: IfNotPresent
-                    name: xrootd-operator
-                    resources: {}
-                serviceAccountName: xrootd-operator
-        - name: xrootd-operator
-          spec:
-            replicas: 1
-            selector:
-              matchLabels:
-                name: xrootd-operator
-            strategy: {}
-            template:
-              metadata:
-                labels:
-                  name: xrootd-operator
-              spec:
-                containers:
-                  - command:
-                      - xrootd-k8s-operator
-                    env:
-                      - name: WATCH_NAMESPACE
-                        valueFrom:
-                          fieldRef:
-                            fieldPath: metadata.annotations['olm.targetNamespaces']
-                      - name: POD_NAME
-                        valueFrom:
-                          fieldRef:
-                            fieldPath: metadata.name
-                      - name: OPERATOR_NAME
-                        value: xrootd-operator
-                    image: REPLACE_IMAGE
+                    image: qserv/xrootd-operator:0.0.1-431101b
                     imagePullPolicy: IfNotPresent
                     name: xrootd-operator
                     resources: {}
