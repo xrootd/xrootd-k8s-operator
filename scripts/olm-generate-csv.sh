@@ -18,5 +18,5 @@ operator-sdk generate csv \
     --update-crds
 
 # Set the operator image version
-sed -i "s|REPLACE_IMAGE|$XROOTD_OPERATOR_IMAGE_REPO:$XROOTD_OPERATOR_IMAGE_TAG|g" \
+sed -i "s|REPLACE_IMAGE|$XROOTD_OPERATOR_FULL_IMAGE|g" \
     "$ROOT_DIR/$XROOTD_OPERATOR_BUNDLE_MANIFEST_DIR/$XROOTD_OPERATOR_NAME.v$XROOTD_OPERATOR_VERSION.clusterserviceversion.yaml"
