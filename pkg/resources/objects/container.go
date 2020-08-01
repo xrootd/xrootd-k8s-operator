@@ -5,24 +5,22 @@ import (
 	"path/filepath"
 
 	"github.com/xrootd/xrootd-k8s-operator/pkg/apis/xrootd/v1alpha1"
+	"github.com/xrootd/xrootd-k8s-operator/pkg/utils"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/constant"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/types"
 	v1 "k8s.io/api/core/v1"
 )
 
 func getXrootdContainersAndVolume(xrootd *v1alpha1.Xrootd, component types.ComponentName) (types.Containers, types.Volumes) {
-	spec := xrootd.Spec
 	volumeSet := newInstanceVolumeSet(xrootd.ObjectMeta)
 	volumeSet.addEtcConfigVolume(constant.CfgXrootd)
 	volumeSet.addRunConfigVolume(constant.CfgXrootd)
 	// Shared filesystem is mounted for both xrootd and cmsd
 	// Required for worker to communicate to cmsd using the named pipe located at 'adminpath'
 	volumeSet.addEmptyDirVolume(constant.XrootdSharedAdminPathVolumeName, constant.XrootdSharedAdminPath)
-	var image string
-	if component == constant.XrootdRedirector {
-		image = spec.Redirector.Image
-	} else {
-		image = spec.Worker.Image
+	image, err := utils.GetXrootdImage(xrootd.Spec.Version)
+	if err != nil {
+		rLog.Error(err, "Unable to find xrootd image!")
 	}
 	if component == constant.XrootdWorker {
 		volumeSet.addDataPVVolumeMount(filepath.Join("/", "data"))

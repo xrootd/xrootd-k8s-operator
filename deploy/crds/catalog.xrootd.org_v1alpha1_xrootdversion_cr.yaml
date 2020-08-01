@@ -1,0 +1,7 @@
+apiVersion: catalog.xrootd.org/v1alpha1
+kind: XrootdVersion
+metadata:
+  name: example-xrootdversion
+spec:
+  # Add fields here
+  size: 3

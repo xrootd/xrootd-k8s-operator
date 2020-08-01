@@ -91,3 +91,15 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+  - catalog.xrootd.org
+  resources:
+  - '*'
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch

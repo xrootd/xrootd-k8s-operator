@@ -39,23 +39,18 @@ spec:
                 description: XrootdRedirectorSpec defines the desired state of Xrootd
                   redirectors
                 properties:
-                  image:
-                    description: Image must have a tag
-                    pattern: .+:.+
-                    type: string
                   replicas:
                     format: int32
                     minimum: 1
                     type: integer
                 type: object
+              version:
+                description: Xrootd Version to use in the cluster pods
+                type: string
               worker:
                 description: XrootdWorkerSpec defines the desired state of Xrootd
                   workers
                 properties:
-                  image:
-                    description: Image must have a tag
-                    pattern: .+:.+
-                    type: string
                   replicas:
                     format: int32
                     minimum: 1

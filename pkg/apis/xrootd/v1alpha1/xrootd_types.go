@@ -1,6 +1,7 @@
 package v1alpha1
 
 import (
+	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -11,6 +12,8 @@ type XrootdSpec struct {
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
+	// Xrootd Version to use in the cluster pods
+	Version    types.CatalogVersion `json:"version,omitempty"`
 	Worker     XrootdWorkerSpec     `json:"worker,omitempty"`
 	Redirector XrootdRedirectorSpec `json:"redirector,omitempty"`
 	Config     XrootdConfigSpec     `json:"config,omitempty"`
@@ -27,20 +30,14 @@ type XrootdStorageSpec struct {
 // XrootdWorkerSpec defines the desired state of Xrootd workers
 type XrootdWorkerSpec struct {
 	// +kubebuilder:validation:Minimum=1
-	Replicas int32 `json:"replicas,omitempty"`
-	// Image must have a tag
-	// +kubebuilder:validation:Pattern=".+:.+"
-	Image   string            `json:"image,omitempty"`
-	Storage XrootdStorageSpec `json:"storage,omitempty"`
+	Replicas int32             `json:"replicas,omitempty"`
+	Storage  XrootdStorageSpec `json:"storage,omitempty"`
 }
 
 // XrootdRedirectorSpec defines the desired state of Xrootd redirectors
 type XrootdRedirectorSpec struct {
 	// +kubebuilder:validation:Minimum=1
 	Replicas int32 `json:"replicas,omitempty"`
-	// Image must have a tag
-	// +kubebuilder:validation:Pattern=".+:.+"
-	Image string `json:"image,omitempty"`
 }
 
 // XrootdConfigSpec defines the config spec used to generate xrootd.cf
