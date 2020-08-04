@@ -1,6 +1,7 @@
 package v1alpha1
 
 import (
+	catalogv1alpha1 "github.com/xrootd/xrootd-k8s-operator/pkg/apis/catalog/v1alpha1"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -68,4 +69,11 @@ type XrootdList struct {
 
 func init() {
 	SchemeBuilder.Register(&Xrootd{}, &XrootdList{})
+}
+
+func (xrootd *Xrootd) SetVersionInfo(version catalogv1alpha1.XrootdVersion) {
+	xrootd.Status.CurrentXrootdProtocol = XrootdProtocolStatus{
+		Version: string(version.Spec.Version),
+		Image:   version.Spec.Image,
+	}
 }

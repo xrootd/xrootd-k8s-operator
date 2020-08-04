@@ -37,8 +37,8 @@ type XrootdStatus struct {
 	// Condition keeps track of all cluster conditions, if they exist.
 	Conditions []ClusterCondition `json:"conditions,omitempty"`
 
-	// CurrentVersion is the current xrootd version
-	CurrentVersion string `json:"currentVersion,omitempty"`
+	// CurrentXrootdProtocol tracks the currently-used xrootd protocol info
+	CurrentXrootdProtocol XrootdProtocolStatus `json:"currentXrootdProtocol"`
 
 	RedirectorStatus MemberStatus `json:"redirectorStatus"`
 	WorkerStatus     MemberStatus `json:"workerStatus"`
@@ -137,4 +137,12 @@ func newClusterCondition(condType ClusterConditionType, status v1.ConditionStatu
 		Reason:             reason,
 		Message:            message,
 	}
+}
+
+// XrootdProtocolStatus defines the version info and image of running xrootd software
+type XrootdProtocolStatus struct {
+	// Version is the current xrootd version
+	Version string `json:"version"`
+	// Image is the currently used image for xrootd containers
+	Image string `json:"image"`
 }

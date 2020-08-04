@@ -104,9 +104,20 @@ spec:
                   - type
                   type: object
                 type: array
-              currentVersion:
-                description: CurrentVersion is the current xrootd version
-                type: string
+              currentXrootdProtocol:
+                description: CurrentXrootdProtocol tracks the currently-used xrootd
+                  protocol info
+                properties:
+                  image:
+                    description: Image is the currently used image for xrootd containers
+                    type: string
+                  version:
+                    description: Version is the current xrootd version
+                    type: string
+                required:
+                - image
+                - version
+                type: object
               phase:
                 description: Phase is the cluster running phase
                 type: string
@@ -177,6 +188,7 @@ spec:
                 - size
                 type: object
             required:
+            - currentXrootdProtocol
             - phase
             - redirectorStatus
             - workerStatus
