@@ -116,10 +116,14 @@ func (r *ReconcileXrootd) IsValid(instance controllerutil.Object) (bool, error) 
 	if len(xrootd.Spec.Version) == 0 {
 		return false, fmt.Errorf("Provide xrootd version in instance")
 	}
-	if image, err := utils.GetXrootdImage(xrootd.Spec.Version); err != nil {
-		return false, errors.Wrap(err, "Cannot find relevant image for the given version")
-	} else if len(image) == 0 {
+	if versionInfo, err := utils.GetFirstValidXrootdVersion(r.GetClient(), instance.GetNamespace(), xrootd.Spec.Version); err != nil {
+		return false, errors.Wrap(err, "Failed to get valid xrootd version")
+	} else if versionInfo == nil {
+		return false, fmt.Errorf("Unable to find requested version - %s", xrootd.Spec.Version)
+	} else if image := versionInfo.Spec.Image; len(image) == 0 {
 		return false, fmt.Errorf("Invalid image, '%s', provided for the given version, '%s'", image, xrootd.Spec.Version)
+	} else {
+		xrootd.SetVersionInfo(*versionInfo)
 	}
 	return true, nil
 }
