@@ -17,7 +17,7 @@ endif
 
 OPERATOR_IMAGE := $(shell . $(ENVFILE) ; echo $${XROOTD_OPERATOR_IMAGE})
 VERSION := $(shell . $(RELEASE_SUPPORT) ; getVersion)
-BUNDLE_MANIFEST_DIR := $(shell . $(ENVFILE) ; echo $${XROOTD_OPERATOR_BUNDLE_MANIFEST_DIR})
+BUNDLE_MANIFEST_DIR := $(shell . $(ENVFILE) ; echo $${XROOTD_OPERATOR_BUNDLE_MANIFEST_VERSION_DIR})
 
 .PHONY: help version bundle push-bundle lint-bundle olm-generate uninstall \
 	code-vet code-fmt code code-gen build-image build dev-install clean

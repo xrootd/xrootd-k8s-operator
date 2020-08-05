@@ -25,3 +25,5 @@ type ContainerPort int
 func (port *ContainerPort) String() string {
 	return strconv.Itoa(int(*port))
 }
+
+type CatalogVersion string

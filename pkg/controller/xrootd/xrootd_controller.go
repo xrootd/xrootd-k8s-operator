@@ -1,8 +1,12 @@
 package xrootd
 
 import (
+	"fmt"
+
+	"github.com/pkg/errors"
 	xrootdv1alpha1 "github.com/xrootd/xrootd-k8s-operator/pkg/apis/xrootd/v1alpha1"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/controller/reconciler"
+	"github.com/xrootd/xrootd-k8s-operator/pkg/utils"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/constant"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -106,7 +110,19 @@ func (r *ReconcileXrootd) IsValid(instance controllerutil.Object) (bool, error) 
 	if xrootd.Spec.Worker.Replicas == 0 {
 		xrootd.Spec.Worker.Replicas = 1
 	}
-	xrootd.Spec.Worker.Storage.Class = "standard"
+	if len(xrootd.Spec.Worker.Storage.Class) == 0 {
+		xrootd.Spec.Worker.Storage.Class = "standard"
+	}
+	if len(xrootd.Spec.Version) == 0 {
+		return false, fmt.Errorf("Provide xrootd version in instance")
+	}
+	if versionInfo, err := utils.GetXrootdVersionInfo(r.GetClient(), instance.GetNamespace(), xrootd.Spec.Version); err != nil {
+		return false, errors.Wrapf(err, "Unable to find requested version - %s", xrootd.Spec.Version)
+	} else if image := versionInfo.Spec.Image; len(image) == 0 {
+		return false, fmt.Errorf("Invalid image, '%s', provided for the given version, '%s'", image, xrootd.Spec.Version)
+	} else {
+		xrootd.SetVersionInfo(*versionInfo)
+	}
 	return true, nil
 }
 

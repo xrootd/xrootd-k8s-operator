@@ -11,6 +11,7 @@ Usage: `basename $0` [options] [cmd]
 
   Available options:
     -d                  Install from local git repository
+    -c CATALOG_DIR      Install XrootdVersion CRs for version catalog
     -n NAMESPACE        Specify namespace (default: kubeconfig/default)
     -u                  Uninstall Xrootd-operator,
                       and related CustomResourceDefinition/CustomResource
@@ -43,10 +44,13 @@ PURGE=true
 NAMESPACE=$(kubectl config view --minify --output 'jsonpath={..namespace}')
 NAMESPACE=${NAMESPACE:-default}
 
+CATALOG_DIR="$ROOT_DIR/manifests/xrootd-catalog"
+
 # get the options
-while getopts vhudn: c ; do
+while getopts vhudn:c: c ; do
     case $c in
         n) NAMESPACE="$OPTARG" ;;
+        c) CATALOG_DIR="$OPTARG" ;;
         d) DEV_INSTALL=true ;;
         u) UNINSTALL=true ;;
         v) set -x ;;
@@ -79,16 +83,21 @@ else
 fi
 
 echo "....... Applying CRDs ......."
-crd_yml="$MANIFESTS_DIR"/deploy/crds/xrootd.org_xrootds_crd.yaml
-if [ $DEV_INSTALL = false ]; then
-  down_path=/tmp/xrootd.org_xrootds_crd.yaml
-  wget $crd_yml -O $down_path
-  crd_yml=$down_path
-fi
-crd_code=$(if [ $IS_OPENSHIFT = true ]; then sed 's|apiextensions.k8s.io/v1|apiextensions.k8s.io/v1beta1|' $crd_yml; else cat $crd_yml; fi)
-$kapply - << EOF
+apply_crd() {
+  crd_yml="$MANIFESTS_DIR/deploy/crds/$1"
+  if [ $DEV_INSTALL = false ]; then
+    down_path="/tmp/$1"
+    wget $crd_yml -O $down_path
+    crd_yml=$down_path
+  fi
+  crd_code=$(if [ $IS_OPENSHIFT = true ]; then sed 's|apiextensions.k8s.io/v1|apiextensions.k8s.io/v1beta1|' $crd_yml; else cat $crd_yml; fi)
+  $kapply - << EOF
 $crd_code
 EOF
+}
+
+apply_crd catalog.xrootd.org_xrootdversions_crd.yaml
+apply_crd xrootd.org_xrootds_crd.yaml
 
 echo "....... Applying Rules and Service Account ....."
 $kapply "$MANIFESTS_DIR"/deploy/service_account.yaml
@@ -100,6 +109,13 @@ op_code=$(sed "s|REPLACE_IMAGE|$XROOTD_OPERATOR_FULL_IMAGE|g" "$MANIFESTS_DIR/de
 $kapply - << EOF
 $op_code
 EOF
+
+if [ -d "$CATALOG_DIR" ]; then
+  echo "....... Applying Xrootd Version Catalogs ......."
+  kubectl apply -f $CATALOG_DIR/*
+else
+  echo "....... Skipping Xrootd Version Catalogs ......."
+fi
 
 while ! kubectl wait --for=condition=Ready pods -l name=xrootd-operator -n "$NAMESPACE"
 do
