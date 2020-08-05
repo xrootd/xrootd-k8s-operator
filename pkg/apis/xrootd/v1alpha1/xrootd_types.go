@@ -2,7 +2,6 @@ package v1alpha1
 
 import (
 	catalogv1alpha1 "github.com/xrootd/xrootd-k8s-operator/pkg/apis/catalog/v1alpha1"
-	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -13,10 +12,9 @@ type XrootdSpec struct {
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
-	// Version must be a Xrootd version to use in the cluster pods.
-	// The requested version must be installed in the target namespace
-	// using XrootdVersion CRD.
-	Version    types.CatalogVersion `json:"version"`
+	// Version must be name of XrootdVersion CR instance which defines the xrootd protcol image to use in the cluster pods.
+	// The requested XrootdVersion instance must be installed in the target namespace using XrootdVersion CRD.
+	Version    string               `json:"version"`
 	Worker     XrootdWorkerSpec     `json:"worker,omitempty"`
 	Redirector XrootdRedirectorSpec `json:"redirector,omitempty"`
 	Config     XrootdConfigSpec     `json:"config,omitempty"`

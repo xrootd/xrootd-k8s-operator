@@ -3,7 +3,7 @@ kind: Xrootd
 metadata:
   name: base-xrootd
 spec:
-  version: "latest"
+  version: "latest-version"
   worker:
     storage:
       capacity: "1Gi"

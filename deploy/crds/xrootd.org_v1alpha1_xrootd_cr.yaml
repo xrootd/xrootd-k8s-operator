@@ -3,7 +3,7 @@ kind: Xrootd
 metadata:
   name: example-xrootd
 spec:
-  version: "latest"
+  version: "latest-xrootdversion"
   redirector:
     replicas: 1
   worker:
