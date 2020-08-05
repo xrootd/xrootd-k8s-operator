@@ -3,9 +3,10 @@ kind: Xrootd
 metadata:
   name: example-xrootd
 spec:
+  version: "latest"
   redirector:
-    image: "qserv/xrootd:latest"
+    replicas: 1
   worker:
-    image: "qserv/xrootd:latest"
+    replicas: 2
     storage:
       capacity: "1Gi"

@@ -1,7 +1,7 @@
 apiVersion: catalog.xrootd.org/v1alpha1
 kind: XrootdVersion
 metadata:
-  name: example-xrootdversion
+  name: latest-version
 spec:
   version: "latest"
   image: "qserv/xrootd:latest"
