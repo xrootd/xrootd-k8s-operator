@@ -40,18 +40,22 @@ spec:
                   redirectors
                 properties:
                   replicas:
+                    default: 1
                     format: int32
                     minimum: 1
                     type: integer
                 type: object
               version:
-                description: Xrootd Version to use in the cluster pods
+                description: Version must be a Xrootd version to use in the cluster
+                  pods. The requested version must be installed in the target namespace
+                  using XrootdVersion CRD.
                 type: string
               worker:
                 description: XrootdWorkerSpec defines the desired state of Xrootd
                   workers
                 properties:
                   replicas:
+                    default: 1
                     format: int32
                     minimum: 1
                     type: integer
@@ -64,10 +68,13 @@ spec:
                           be a valid quantity (ex, 1Gi)
                         type: string
                       class:
+                        default: standard
                         description: Class must be a storage class
                         type: string
                     type: object
                 type: object
+            required:
+            - version
             type: object
           status:
             description: XrootdStatus defines the observed state of Xrootd

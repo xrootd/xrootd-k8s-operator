@@ -13,8 +13,10 @@ type XrootdSpec struct {
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
-	// Xrootd Version to use in the cluster pods
-	Version    types.CatalogVersion `json:"version,omitempty"`
+	// Version must be a Xrootd version to use in the cluster pods.
+	// The requested version must be installed in the target namespace
+	// using XrootdVersion CRD.
+	Version    types.CatalogVersion `json:"version"`
 	Worker     XrootdWorkerSpec     `json:"worker,omitempty"`
 	Redirector XrootdRedirectorSpec `json:"redirector,omitempty"`
 	Config     XrootdConfigSpec     `json:"config,omitempty"`
@@ -23,6 +25,7 @@ type XrootdSpec struct {
 // XrootdStorageSpec defines the storage spec of Xrootd workers
 type XrootdStorageSpec struct {
 	// Class must be a storage class
+	// +kubebuilder:default=standard
 	Class string `json:"class,omitempty"`
 	// Capacity must be a storage capacity and should be a valid quantity (ex, 1Gi)
 	Capacity string `json:"capacity,omitempty"`
@@ -31,6 +34,7 @@ type XrootdStorageSpec struct {
 // XrootdWorkerSpec defines the desired state of Xrootd workers
 type XrootdWorkerSpec struct {
 	// +kubebuilder:validation:Minimum=1
+	// +kubebuilder:default=1
 	Replicas int32             `json:"replicas,omitempty"`
 	Storage  XrootdStorageSpec `json:"storage,omitempty"`
 }
@@ -38,6 +42,7 @@ type XrootdWorkerSpec struct {
 // XrootdRedirectorSpec defines the desired state of Xrootd redirectors
 type XrootdRedirectorSpec struct {
 	// +kubebuilder:validation:Minimum=1
+	// +kubebuilder:default=1
 	Replicas int32 `json:"replicas,omitempty"`
 }
 

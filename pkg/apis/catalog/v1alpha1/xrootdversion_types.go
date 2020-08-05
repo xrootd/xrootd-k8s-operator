@@ -10,17 +10,16 @@ import (
 
 // XrootdVersionSpec defines the desired state of XrootdVersion
 type XrootdVersionSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
 	// Xrootd Version in the provided image
-	Version types.CatalogVersion `json:"version,omitempty"`
+	Version types.CatalogVersion `json:"version"`
 	// Whether this version is deprecated or not
 	Deprecated bool `json:"deprecated,omitempty"`
 	// Image must have a tag
 	// +kubebuilder:validation:Pattern=".+:.+"
-	Image string `json:"image,omitempty"`
+	Image string `json:"image"`
 }
 
 // XrootdVersionStatus defines the observed state of XrootdVersion

@@ -41,6 +41,9 @@ spec:
               version:
                 description: Xrootd Version in the provided image
                 type: string
+            required:
+            - image
+            - version
             type: object
           status:
             description: XrootdVersionStatus defines the observed state of XrootdVersion
