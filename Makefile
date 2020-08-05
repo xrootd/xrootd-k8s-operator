@@ -94,6 +94,40 @@ olm-generate: ## Generates the required CSV manifests
 	@echo "....... Generating CSV ......."
 	@$(SHELL) $(SCRIPTS_DIR)/olm-generate-csv.sh
 
+tag-patch-release: VERSION := $(shell . $(RELEASE_SUPPORT); nextPatchLevel)
+tag-patch-release: .release tag
+
+tag-minor-release: VERSION := $(shell . $(RELEASE_SUPPORT); nextMinorLevel)
+tag-minor-release: .release tag
+
+tag-major-release: VERSION := $(shell . $(RELEASE_SUPPORT); nextMajorLevel)
+tag-major-release: .release tag
+
+patch-bump: tag-patch-release release ### Increments the patch release level, build and push to registry.
+	@echo "Patch release: $(VERSION)"
+
+minor-bump: tag-minor-release release ### Increments the minor release level, build and push to registry.
+	@echo "Minor release: $(VERSION)"
+
+major-bump: tag-major-release release ### Increments the major release level, build and push to registry.
+	@echo "Major release: $(VERSION)"
+
+tag: TAG=$(shell . $(RELEASE_SUPPORT); getTag $(VERSION))
+tag: check-status
+	@. $(RELEASE_SUPPORT) ; ! tagExists $(TAG) || (echo "ERROR: tag $(TAG) for version $(VERSION) already tagged in git" >&2 && exit 1) ;
+	@. $(RELEASE_SUPPORT) ; setRelease $(VERSION)
+	git add -u
+	git commit -m "chore: Version bump → $(VERSION)" ;
+	git tag $(TAG) ;
+	@ if [ -n "$(shell git remote -v)" ] ; then git push --tags ; else echo 'no remote to push tags to' ; fi
+
+check-status: ## Checks whether there are outstanding changes.
+	@. $(RELEASE_SUPPORT) ; ! hasChanges || (echo "ERROR: there are still outstanding changes" >&2 && exit 1) ;
+
+check-release: .release ## Checks whether the current directory matches the tagged release in git.
+	@. $(RELEASE_SUPPORT) ; tagExists $(TAG) || (echo "ERROR: version not yet tagged in git. make [minor,major,patch]-bump." >&2 && exit 1) ;
+	@. $(RELEASE_SUPPORT) ; ! differsFromRelease $(TAG) || (echo "ERROR: current directory differs from tagged $(TAG). make [minor,major,patch]-release." ; exit 1)
+
 ##@ Tests
 
 tests-e2e: ## Run e2e tests
