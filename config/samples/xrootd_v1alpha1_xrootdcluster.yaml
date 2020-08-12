@@ -1,0 +1,7 @@
+apiVersion: xrootd.xrootd.org/v1alpha1
+kind: XrootdCluster
+metadata:
+  name: xrootdcluster-sample
+spec:
+  # Add fields here
+  foo: bar

@@ -1,0 +1,24 @@
+# permissions for end users to edit xrootdversions.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: xrootdversion-editor-role
+rules:
+- apiGroups:
+  - catalog.xrootd.org
+  resources:
+  - xrootdversions
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - catalog.xrootd.org
+  resources:
+  - xrootdversions/status
+  verbs:
+  - get

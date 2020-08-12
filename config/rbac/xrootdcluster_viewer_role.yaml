@@ -1,0 +1,20 @@
+# permissions for end users to view xrootdclusters.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: xrootdcluster-viewer-role
+rules:
+- apiGroups:
+  - xrootd.xrootd.org
+  resources:
+  - xrootdclusters
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - xrootd.xrootd.org
+  resources:
+  - xrootdclusters/status
+  verbs:
+  - get
