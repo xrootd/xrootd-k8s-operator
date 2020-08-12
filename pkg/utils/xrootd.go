@@ -8,6 +8,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+// GetXrootdVersionInfo returns the XrootdVersion CR object with Name as `versionName`
 func GetXrootdVersionInfo(runtimeClient client.Client, namespace string, versionName string) (result *catalogv1alpha1.XrootdVersion, err error) {
 	result = &catalogv1alpha1.XrootdVersion{}
 	key := k8stypes.NamespacedName{

@@ -10,6 +10,7 @@ import (
 
 var log = logf.Log.WithName("template")
 
+// ApplyTemplate parses the given `tmplPath` and applies the given `tmplData` on the template
 func ApplyTemplate(tmplPath string, tmplData interface{}) (string, error) {
 	tmpl, err := template.New(filepath.Base(tmplPath)).Funcs(TemplateFunctions).ParseFiles(tmplPath)
 	if err != nil {

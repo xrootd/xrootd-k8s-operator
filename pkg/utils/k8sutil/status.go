@@ -9,6 +9,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+// UpdatePodCondition updates the given condition type of the given pod with the new status and reason
 func UpdatePodCondition(pod *corev1.Pod, condType corev1.PodConditionType, condStatus corev1.ConditionStatus, reason string, kubeclient client.Client) error {
 	now := metav1.NewTime(time.Now())
 	found := false
@@ -36,6 +37,8 @@ func UpdatePodCondition(pod *corev1.Pod, condType corev1.PodConditionType, condS
 	return kubeclient.Status().Update(context.TODO(), pod)
 }
 
+// UpdatePodConditionWithBool updates the given condition type of the given pod with the new status and reason.
+// It accepts bool conditional status and internally calls UpdatePodCondition with correct status value
 func UpdatePodConditionWithBool(pod *corev1.Pod, condType corev1.PodConditionType, condStatus *bool, reason string, kubeclient client.Client) error {
 	actualStatus := corev1.ConditionUnknown
 	if condStatus != nil {

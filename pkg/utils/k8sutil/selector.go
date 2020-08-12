@@ -7,6 +7,8 @@ import (
 	"k8s.io/apimachinery/pkg/selection"
 )
 
+// GetXrootdLabelSelector returns the label selector to match those sub-resources, belonging
+// to given CR instance and given component.
 func GetXrootdLabelSelector(component types.ComponentName, instanceName string) (labels.Selector, error) {
 	selector := labels.NewSelector()
 	for key, value := range utils.GetComponentLabels(component, instanceName) {

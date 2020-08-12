@@ -23,6 +23,10 @@ func deepEqual(existing resource.KubernetesResource, requested resource.Kubernet
 	return equals(existing, requested)
 }
 
+// GetComparator returns a MapComparator to compare k8s resources.
+// It is useful when syncing resources to decide whether to
+// create new, update or delete existing resources.
+// This implementation uses equality.Semantic.DeepEqual on spec field of resources.
 func GetComparator() *compare.MapComparator {
 	comparator := compare.DefaultComparator()
 	comparator.SetDefaultComparator(deepEqual)
