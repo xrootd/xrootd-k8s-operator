@@ -1,0 +1,8 @@
+domain: xrootd.org
+layout: go.kubebuilder.io/v2
+projectName: xrootd-operator
+repo: github.com/xrootd/xrootd-k8s-operator
+multigroup: true
+version: 3-alpha
+plugins:
+  go.sdk.operatorframework.io/v2-alpha: {}
