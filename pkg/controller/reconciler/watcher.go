@@ -59,7 +59,7 @@ func (wm *WatchManager) GetWatchers(instance resource) watch.Watchers {
 // given reconciliation request.
 func (wm *WatchManager) RefreshWatch(request reconcile.Request) error {
 	wm.destLock.Lock()
-	wm.destLock.Unlock()
+	defer wm.destLock.Unlock()
 
 	for _, dst := range wm.dest {
 		dst <- request
