@@ -13,6 +13,8 @@ const defaultChannelCapacity = 12
 
 var log = logf.Log.WithName("reconciler")
 
+// WatchReconciler provides control to watch lifecycle and allows refreshing
+// watches on reconciliation request.
 type WatchReconciler interface {
 	RefreshWatch(request reconcile.Request) error
 	GetWatchers(instance resource) watch.Watchers
@@ -21,6 +23,9 @@ type WatchReconciler interface {
 
 var _ inject.Stoppable = &WatchManager{}
 
+// WatchManager manages a set of watchers, each of them running in parallel goroutines.
+// It also supports graceful shutdown of watchers by closing all the destination
+// channels whenever the injected stop channel is triggered.
 type WatchManager struct {
 	// once ensures the event distribution goroutine will be performed only once
 	once sync.Once
@@ -33,19 +38,25 @@ type WatchManager struct {
 	destLock sync.Mutex
 }
 
+// AddWatchers adds a requested set of watchers to be managed
 func (wm *WatchManager) AddWatchers(watchers ...watch.Watcher) {
 	wm.watchers = wm.watchers.AddWatchers(watchers...)
 }
 
+// InjectStopChannel sets the stop channel, which when triggered would
+// stop ongoing goroutines and close all channels
 func (wm *WatchManager) InjectStopChannel(stop <-chan struct{}) error {
 	wm.stop = stop
 	return nil
 }
 
+// GetWatchers returns the set of managed watchers
 func (wm *WatchManager) GetWatchers(instance resource) watch.Watchers {
 	return wm.watchers
 }
 
+// RefreshWatch refreshes the managed-watchers with the
+// given reconciliation request.
 func (wm *WatchManager) RefreshWatch(request reconcile.Request) error {
 	wm.destLock.Lock()
 	wm.destLock.Unlock()
@@ -56,6 +67,8 @@ func (wm *WatchManager) RefreshWatch(request reconcile.Request) error {
 	return nil
 }
 
+// StartWatching starts up the required goroutines of watchers, which
+// either terminates due to error in Watch() or when all channels are closed.
 func (wm *WatchManager) StartWatching() error {
 	wm.once.Do(func() {
 		go wm.syncLoop()
@@ -101,6 +114,8 @@ func (wm *WatchManager) syncLoop() {
 	}
 }
 
+// NewWatchManager creates a new WatchManager with empty watchers
+// and given stop channel
 func NewWatchManager(stop <-chan struct{}) *WatchManager {
 	initialSize := 0
 	return &WatchManager{

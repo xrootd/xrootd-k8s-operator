@@ -59,6 +59,7 @@ func (grw *GroupedRequestWatcher) doCleanup() {
 	}
 }
 
+// NewGroupedRequestWatcher creates a new GroupedRequestWatcher with empty map of channels
 func NewGroupedRequestWatcher(subWatcher Watcher) Watcher {
 	return &GroupedRequestWatcher{
 		subWatcher:     subWatcher,

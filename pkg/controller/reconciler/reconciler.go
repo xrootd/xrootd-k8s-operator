@@ -15,6 +15,7 @@ import (
 
 type resource = controllerutil.Object
 
+// Reconciler provides common helper methods useful for reconciliation.
 type Reconciler interface {
 	GetClient() client.Client
 	GetRecorder() record.EventRecorder
@@ -26,6 +27,7 @@ type Reconciler interface {
 	IsValid(instance resource) (bool, error)
 }
 
+// BaseReconciler implements common logic for Reconciler
 type BaseReconciler struct {
 	// This client, initialized using mgr.Client() above, is a split client
 	// that reads objects from the cache and writes to the apiserver
@@ -35,6 +37,7 @@ type BaseReconciler struct {
 	recorder record.EventRecorder
 }
 
+// NewBaseReconciler creates a new BaseReconciler
 func NewBaseReconciler(
 	client client.Client, scheme *runtime.Scheme,
 	recorder record.EventRecorder, config *rest.Config,
@@ -47,18 +50,22 @@ func NewBaseReconciler(
 	}
 }
 
+// GetClient returns controller runtime client object
 func (br BaseReconciler) GetClient() client.Client {
 	return br.client
 }
 
+// GetRecorder implements Reconciler.GetRecorder
 func (br BaseReconciler) GetRecorder() record.EventRecorder {
 	return br.recorder
 }
 
+// GetScheme implements Reconciler.GetScheme
 func (br BaseReconciler) GetScheme() *runtime.Scheme {
 	return br.scheme
 }
 
+// GetConfig implements Reconciler.GetConfig
 func (br BaseReconciler) GetConfig() *rest.Config {
 	return br.config
 }
@@ -68,6 +75,8 @@ func IsBeingDeleted(obj resource) bool {
 	return !obj.GetDeletionTimestamp().IsZero() || obj.GetName() == ""
 }
 
+// GetResourceInstance implements Reconciler.GetResourceInstance by fetching the requested k8s
+// object and updating the `instance` struct
 func (br *BaseReconciler) GetResourceInstance(request reconcile.Request, instance resource) error {
 	if err := br.GetClient().Get(context.TODO(), request.NamespacedName, instance); err != nil {
 		if errors.IsNotFound(err) {
