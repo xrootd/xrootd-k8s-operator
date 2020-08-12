@@ -5,14 +5,14 @@ import (
 	"strconv"
 
 	"github.com/pkg/errors"
-	xrootdv1alpha1 "github.com/xrootd/xrootd-k8s-operator/pkg/apis/xrootd/v1alpha1"
+	xrootdv1alpha1 "github.com/xrootd/xrootd-k8s-operator/apis/xrootd/v1alpha1"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/constant"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-func (r *ReconcileXrootd) UpdateStatus(instance controllerutil.Object) error {
-	xrootd := instance.(*xrootdv1alpha1.Xrootd)
+func (r *XrootdClusterReconciler) UpdateStatus(instance controllerutil.Object) error {
+	xrootd := instance.(*xrootdv1alpha1.XrootdCluster)
 
 	// Worker nodes
 	workerSize := int(xrootd.Spec.Worker.Replicas)

@@ -3,7 +3,7 @@ package utils
 import (
 	"context"
 
-	catalogv1alpha1 "github.com/xrootd/xrootd-k8s-operator/pkg/apis/catalog/v1alpha1"
+	catalogv1alpha1 "github.com/xrootd/xrootd-k8s-operator/apis/catalog/v1alpha1"
 	k8stypes "k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )

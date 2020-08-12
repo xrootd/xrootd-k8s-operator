@@ -10,7 +10,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/msoap/byline"
 	"github.com/pkg/errors"
-	xrootdv1alpha1 "github.com/xrootd/xrootd-k8s-operator/pkg/apis/xrootd/v1alpha1"
+	xrootdv1alpha1 "github.com/xrootd/xrootd-k8s-operator/apis/xrootd/v1alpha1"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/controller/reconciler"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/constant"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/k8sutil"

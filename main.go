@@ -35,6 +35,7 @@ import (
 	catalogv1alpha1 "github.com/xrootd/xrootd-k8s-operator/apis/catalog/v1alpha1"
 	xrootdv1alpha1 "github.com/xrootd/xrootd-k8s-operator/apis/xrootd/v1alpha1"
 	xrootdcontroller "github.com/xrootd/xrootd-k8s-operator/controllers/xrootd"
+	"github.com/xrootd/xrootd-k8s-operator/pkg/controller/reconciler"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -54,7 +55,7 @@ func init() {
 func main() {
 	var metricsAddr string
 	var enableLeaderElection bool
-	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
+	flag.StringVar(&metricsAddr, "metrics-addr", ":8383", "The address the metric endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
@@ -75,9 +76,12 @@ func main() {
 	}
 
 	if err = (&xrootdcontroller.XrootdClusterReconciler{
-		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("XrootdCluster"),
-		Scheme: mgr.GetScheme(),
+		BaseReconciler: reconciler.NewBaseReconciler(
+			mgr.GetClient(), mgr.GetScheme(),
+			mgr.GetEventRecorderFor(xrootdcontroller.ControllerName), mgr.GetConfig(),
+		),
+		WatchManager: reconciler.NewWatchManager(nil),
+		Log:          ctrl.Log.WithName("controllers").WithName("XrootdCluster"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "XrootdCluster")
 		os.Exit(1)

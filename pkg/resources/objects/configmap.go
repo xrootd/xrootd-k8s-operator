@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/xrootd/xrootd-k8s-operator/pkg/apis/xrootd/v1alpha1"
+	"github.com/xrootd/xrootd-k8s-operator/apis/xrootd/v1alpha1"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/constant"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/template"

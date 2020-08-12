@@ -6,13 +6,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
-func (r *ReconcileXrootd) RefreshWatch(request reconcile.Request) error {
+func (r *XrootdClusterReconciler) RefreshWatch(request reconcile.Request) error {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Watching Xrootd resources...")
 	return r.WatchManager.RefreshWatch(request)
 }
 
-func (r *ReconcileXrootd) AddXrootdLogger() {
+func (r *XrootdClusterReconciler) AddXrootdLogger() {
 	r.AddWatchers(xrootd.NewLogsWatcher(constant.XrootdRedirector, r))
 	r.AddWatchers(xrootd.NewLogsWatcher(constant.XrootdWorker, r))
 }

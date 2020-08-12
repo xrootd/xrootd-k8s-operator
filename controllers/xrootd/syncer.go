@@ -7,7 +7,7 @@ import (
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"
 	"github.com/RHsyseng/operator-utils/pkg/resource/read"
 	"github.com/RHsyseng/operator-utils/pkg/resource/write"
-	xrootdv1alpha1 "github.com/xrootd/xrootd-k8s-operator/pkg/apis/xrootd/v1alpha1"
+	xrootdv1alpha1 "github.com/xrootd/xrootd-k8s-operator/apis/xrootd/v1alpha1"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/resources"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/comparator"
 	appsv1 "k8s.io/api/apps/v1"
@@ -16,8 +16,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-func (r *ReconcileXrootd) SyncResources(instance controllerutil.Object) error {
-	xrootd := instance.(*xrootdv1alpha1.Xrootd)
+func (r *XrootdClusterReconciler) SyncResources(instance controllerutil.Object) error {
+	xrootd := instance.(*xrootdv1alpha1.XrootdCluster)
 	log := log.WithName("syncResources")
 
 	irs := resources.NewInstanceResourceSet(xrootd)
@@ -65,7 +65,7 @@ func (r *ReconcileXrootd) SyncResources(instance controllerutil.Object) error {
 	return nil
 }
 
-func (r *ReconcileXrootd) GetOwnedResourceKinds(instance runtime.Object) []runtime.Object {
+func (r *XrootdClusterReconciler) GetOwnedResourceKinds(instance runtime.Object) []runtime.Object {
 	return []runtime.Object{
 		&corev1.ConfigMapList{},
 		&appsv1.StatefulSetList{},
@@ -73,7 +73,7 @@ func (r *ReconcileXrootd) GetOwnedResourceKinds(instance runtime.Object) []runti
 	}
 }
 
-func (r *ReconcileXrootd) getDeployedResources(xrootd *xrootdv1alpha1.Xrootd) (map[reflect.Type][]resource.KubernetesResource, error) {
+func (r *XrootdClusterReconciler) getDeployedResources(xrootd *xrootdv1alpha1.XrootdCluster) (map[reflect.Type][]resource.KubernetesResource, error) {
 	reader := read.New(r.GetClient()).WithNamespace(xrootd.Namespace).WithOwnerObject(xrootd)
 	return reader.ListAll(r.GetOwnedResourceKinds(xrootd)...)
 }
