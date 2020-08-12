@@ -186,7 +186,15 @@ func (lw LogsWatcher) processXrootdPodLogs(pod *corev1.Pod, opt *corev1.PodLogOp
 			break
 		}
 	}
-	defer reader.Close()
+	defer func() {
+		if cerr := reader.Close(); cerr != nil {
+			if err != nil {
+				err = errors.Wrap(err, cerr.Error())
+			} else {
+				err = errors.WithMessage(cerr, "Closing log stream failed!")
+			}
+		}
+	}()
 
 	lineReader := byline.NewReader(reader)
 

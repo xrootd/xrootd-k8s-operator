@@ -59,7 +59,9 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 
 	if reconciler, ok := r.(*ReconcileXrootd); ok {
 		reconciler.AddXrootdLogger()
-		reconciler.StartWatching()
+		if err = reconciler.StartWatching(); err != nil {
+			return errors.Wrap(err, "failed starting watches")
+		}
 	}
 
 	return nil
