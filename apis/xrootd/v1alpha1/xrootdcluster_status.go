@@ -12,21 +12,36 @@ type ClusterPhase string
 // ClusterConditionType represents on one of the runtime condition of the cluster
 type ClusterConditionType string
 
+/*
+These are valid Cluster Phases.
+"ClusterPhaseCreating" means the the cluster is being created.
+"ClusterPhaseRunning" means the cluster is running in healthy state.
+"ClusterPhaseFailed" means the cluster is failing.
+*/
 const (
 	ClusterPhaseNone     ClusterPhase = ""
-	ClusterPhaseCreating              = "Creating"
-	ClusterPhaseRunning               = "Running"
-	ClusterPhaseFailed                = "Failed"
-
-	ClusterConditionAvailable  ClusterConditionType = "Available"
-	ClusterConditionRecovering                      = "Recovering"
-	ClusterConditionScaling                         = "Scaling"
-	ClusterConditionUpgrading                       = "Upgrading"
+	ClusterPhaseCreating ClusterPhase = "Creating"
+	ClusterPhaseRunning  ClusterPhase = "Running"
+	ClusterPhaseFailed   ClusterPhase = "Failed"
 )
 
-// XrootdStatus defines the observed state of Xrootd
+/*
+These are valid Cluster Condition types.
+"ClusterConditionAvailable" means the cluster is available to communicate.
+"ClusterConditionRecovering" means the cluster is in recovering condition
+"ClusterConditionScaling" means the cluster is scaling up/down.
+"ClusterConditionUpgrading" means the cluster is undergoing a version upgrade.
+*/
+const (
+	ClusterConditionAvailable  ClusterConditionType = "Available"
+	ClusterConditionRecovering ClusterConditionType = "Recovering"
+	ClusterConditionScaling    ClusterConditionType = "Scaling"
+	ClusterConditionUpgrading  ClusterConditionType = "Upgrading"
+)
+
+// XrootdClusterStatus defines the observed state of XrootdCluster
 // +k8s:openapi-gen=true
-type XrootdStatus struct {
+type XrootdClusterStatus struct {
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
@@ -76,6 +91,7 @@ type ClusterCondition struct {
 	Message string `json:"message,omitempty"`
 }
 
+// NewMemberStatus creates a new xrootd member status with given ready and unready pods
 func NewMemberStatus(ready []string, unready []string) MemberStatus {
 	size := len(ready) + len(unready)
 	return MemberStatus{
@@ -87,16 +103,19 @@ func NewMemberStatus(ready []string, unready []string) MemberStatus {
 	}
 }
 
-func (cs *XrootdStatus) SetPhase(p ClusterPhase) {
+// SetPhase sets the current phase of the cluster
+func (cs *XrootdClusterStatus) SetPhase(p ClusterPhase) {
 	cs.Phase = p
 }
 
-func (cs *XrootdStatus) SetReadyCondition() {
+// SetReadyCondition sets the ClusterAvailable condition type to true
+func (cs *XrootdClusterStatus) SetReadyCondition() {
 	c := newClusterCondition(ClusterConditionAvailable, v1.ConditionTrue, "Cluster available", "")
 	cs.setClusterCondition(*c)
 }
 
-func (cs *XrootdStatus) ClearCondition(t ClusterConditionType) {
+// ClearCondition clears our the given condition type
+func (cs *XrootdClusterStatus) ClearCondition(t ClusterConditionType) {
 	pos, _ := getClusterCondition(cs, t)
 	if pos == -1 {
 		return
@@ -104,7 +123,7 @@ func (cs *XrootdStatus) ClearCondition(t ClusterConditionType) {
 	cs.Conditions = append(cs.Conditions[:pos], cs.Conditions[pos+1:]...)
 }
 
-func (cs *XrootdStatus) setClusterCondition(c ClusterCondition) {
+func (cs *XrootdClusterStatus) setClusterCondition(c ClusterCondition) {
 	pos, cp := getClusterCondition(cs, c.Type)
 	if cp != nil &&
 		cp.Status == c.Status && cp.Reason == c.Reason && cp.Message == c.Message {
@@ -118,7 +137,7 @@ func (cs *XrootdStatus) setClusterCondition(c ClusterCondition) {
 	}
 }
 
-func getClusterCondition(status *XrootdStatus, t ClusterConditionType) (int, *ClusterCondition) {
+func getClusterCondition(status *XrootdClusterStatus, t ClusterConditionType) (int, *ClusterCondition) {
 	for i, c := range status.Conditions {
 		if t == c.Type {
 			return i, &c

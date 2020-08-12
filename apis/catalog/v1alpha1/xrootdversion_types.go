@@ -22,6 +22,7 @@ USA
 package v1alpha1
 
 import (
+	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -33,8 +34,13 @@ type XrootdVersionSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of XrootdVersion. Edit XrootdVersion_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// Xrootd Version in the provided image
+	Version types.CatalogVersion `json:"version"`
+	// Whether this version is deprecated or not
+	Deprecated bool `json:"deprecated,omitempty"`
+	// Image must have a tag
+	// +kubebuilder:validation:Pattern=".+:.+"
+	Image string `json:"image"`
 }
 
 // XrootdVersionStatus defines the observed state of XrootdVersion

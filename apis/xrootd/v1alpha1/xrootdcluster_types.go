@@ -22,6 +22,7 @@ USA
 package v1alpha1
 
 import (
+	catalogv1alpha1 "github.com/xrootd/xrootd-k8s-operator/pkg/apis/catalog/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -33,14 +34,40 @@ type XrootdClusterSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of XrootdCluster. Edit XrootdCluster_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// Version must be name of XrootdVersion CR instance which defines the xrootd protcol image to use in the cluster pods.
+	// The requested XrootdVersion instance must be installed in the target namespace using XrootdVersion CRD.
+	Version    string               `json:"version"`
+	Worker     XrootdWorkerSpec     `json:"worker,omitempty"`
+	Redirector XrootdRedirectorSpec `json:"redirector,omitempty"`
+	Config     XrootdConfigSpec     `json:"config,omitempty"`
 }
 
-// XrootdClusterStatus defines the observed state of XrootdCluster
-type XrootdClusterStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+// XrootdStorageSpec defines the storage spec of Xrootd workers
+type XrootdStorageSpec struct {
+	// Class must be a storage class
+	// +kubebuilder:default=standard
+	Class string `json:"class,omitempty"`
+	// Capacity must be a storage capacity and should be a valid quantity (ex, 1Gi)
+	Capacity string `json:"capacity,omitempty"`
+}
+
+// XrootdWorkerSpec defines the desired state of Xrootd workers
+type XrootdWorkerSpec struct {
+	// +kubebuilder:validation:Minimum=1
+	// +kubebuilder:default=1
+	Replicas int32             `json:"replicas,omitempty"`
+	Storage  XrootdStorageSpec `json:"storage,omitempty"`
+}
+
+// XrootdRedirectorSpec defines the desired state of Xrootd redirectors
+type XrootdRedirectorSpec struct {
+	// +kubebuilder:validation:Minimum=1
+	// +kubebuilder:default=1
+	Replicas int32 `json:"replicas,omitempty"`
+}
+
+// XrootdConfigSpec defines the config spec used to generate xrootd.cf
+type XrootdConfigSpec struct {
 }
 
 // +kubebuilder:object:root=true
@@ -66,4 +93,12 @@ type XrootdClusterList struct {
 
 func init() {
 	SchemeBuilder.Register(&XrootdCluster{}, &XrootdClusterList{})
+}
+
+// SetVersionInfo update the current version info of xrootd protocol
+func (xrootd *XrootdCluster) SetVersionInfo(version catalogv1alpha1.XrootdVersion) {
+	xrootd.Status.CurrentXrootdProtocol = XrootdProtocolStatus{
+		Version: string(version.Spec.Version),
+		Image:   version.Spec.Image,
+	}
 }
