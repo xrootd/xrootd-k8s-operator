@@ -152,7 +152,7 @@ func addMetrics(ctx context.Context, cfg *rest.Config) {
 		}
 	}
 
-	if err := serveCRMetrics(cfg, operatorNs); err != nil {
+	if err = serveCRMetrics(cfg, operatorNs); err != nil {
 		log.Info("Could not generate and serve custom resource metrics", "error", err.Error())
 	}
 
