@@ -21,10 +21,10 @@ type Resources []Resource
 // InstanceResourceSet contains Resources for a given Xrootd instance
 type InstanceResourceSet struct {
 	resources Resources
-	xrootd    *v1alpha1.Xrootd
+	xrootd    *v1alpha1.XrootdCluster
 }
 
-func NewInstanceResourceSet(xrootd *v1alpha1.Xrootd) *InstanceResourceSet {
+func NewInstanceResourceSet(xrootd *v1alpha1.XrootdCluster) *InstanceResourceSet {
 	return &InstanceResourceSet{
 		resources: Resources(make([]Resource, 0)),
 		xrootd:    xrootd,

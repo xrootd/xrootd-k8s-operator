@@ -42,7 +42,7 @@ func scanDir(root string, tmplData interface{}) map[string]string {
 }
 
 func GenerateContainerConfigMap(
-	xrootd *v1alpha1.Xrootd, objectName types.ObjectName,
+	xrootd *v1alpha1.XrootdCluster, objectName types.ObjectName,
 	compLabels types.Labels, config types.ConfigName,
 	subpath string,
 ) v1.ConfigMap {

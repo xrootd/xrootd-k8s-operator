@@ -7,7 +7,7 @@ import (
 )
 
 func (r *XrootdClusterReconciler) RefreshWatch(request reconcile.Request) error {
-	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
+	reqLogger := r.Log.WithValues("xrootdcluster", request.NamespacedName)
 	reqLogger.Info("Watching Xrootd resources...")
 	return r.WatchManager.RefreshWatch(request)
 }

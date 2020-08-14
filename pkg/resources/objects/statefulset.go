@@ -10,7 +10,7 @@ import (
 )
 
 func GenerateXrootdStatefulSet(
-	xrootd *v1alpha1.Xrootd, objectName types.ObjectName,
+	xrootd *v1alpha1.XrootdCluster, objectName types.ObjectName,
 	compLabels types.Labels, componentName types.ComponentName,
 ) appsv1.StatefulSet {
 	labels := compLabels

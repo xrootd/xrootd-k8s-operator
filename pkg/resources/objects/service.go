@@ -9,7 +9,7 @@ import (
 )
 
 func GenerateXrootdService(
-	xrootd *v1alpha1.Xrootd, objectName types.ObjectName,
+	xrootd *v1alpha1.XrootdCluster, objectName types.ObjectName,
 	compLabels types.Labels, componentName types.ComponentName,
 ) corev1.Service {
 	name := string(objectName)

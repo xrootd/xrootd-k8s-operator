@@ -18,7 +18,7 @@ import (
 
 func (r *XrootdClusterReconciler) SyncResources(instance controllerutil.Object) error {
 	xrootd := instance.(*xrootdv1alpha1.XrootdCluster)
-	log := log.WithName("syncResources")
+	log := r.Log.WithName("syncResources")
 
 	irs := resources.NewInstanceResourceSet(xrootd)
 	irs.AddXrootdRedirectorStatefulSetResource()

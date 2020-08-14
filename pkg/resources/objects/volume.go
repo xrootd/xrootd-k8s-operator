@@ -95,7 +95,7 @@ func (ivs *InstanceVolumeSet) addDataPVVolumeMount(mountPath string) {
 	ivs.addVolumeMounts(volumeMount)
 }
 
-func getDataPVClaim(xrootd *v1alpha1.Xrootd) v1.PersistentVolumeClaim {
+func getDataPVClaim(xrootd *v1alpha1.XrootdCluster) v1.PersistentVolumeClaim {
 	defer func() {
 		if err := recover(); err != nil {
 			rLog.WithName("volume.DataPVClaim").Error(err.(error), "failed parsing storage capacity", "xrootd", xrootd)

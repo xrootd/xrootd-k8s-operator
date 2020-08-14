@@ -39,7 +39,7 @@ func (lw LogsWatcher) Watch(requests <-chan reconcile.Request) error {
 	for request := range requests {
 		reqLogger = log.WithValues("request", request, "component", lw.Component)
 
-		instance := &xrootdv1alpha1.Xrootd{}
+		instance := &xrootdv1alpha1.XrootdCluster{}
 		if err := lw.reconciler.GetResourceInstance(request, instance); err != nil {
 			return err
 		}
@@ -65,12 +65,12 @@ func (lw LogsWatcher) monitorXrootdStatus(request reconcile.Request) error {
 	if err != nil {
 		return errors.Wrap(err, "unable to get kubernetes clientset")
 	}
-	var instance *xrootdv1alpha1.Xrootd
+	var instance *xrootdv1alpha1.XrootdCluster
 
 	// infinite loop to monitor all pods of xrootd cluster
 	for {
 		time.Sleep(waitMemberReadyDelay)
-		instance = &xrootdv1alpha1.Xrootd{}
+		instance = &xrootdv1alpha1.XrootdCluster{}
 		if err := lw.reconciler.GetResourceInstance(request, instance); err != nil {
 			return errors.Wrap(err, "failed to refresh xrootd instance")
 		}
@@ -97,7 +97,7 @@ func (lw LogsWatcher) monitorXrootdStatus(request reconcile.Request) error {
 	return nil
 }
 
-func (lw LogsWatcher) updateInstanceStatus(instance *xrootdv1alpha1.Xrootd, countPods int, resultChannel <-chan podStatus) error {
+func (lw LogsWatcher) updateInstanceStatus(instance *xrootdv1alpha1.XrootdCluster, countPods int, resultChannel <-chan podStatus) error {
 	logger := log.WithValues("instance", instance.Name, "component", lw.Component)
 	logger.Info("Waiting for pod results...", "podCount", countPods)
 	unreadyPods := make([]string, 0)

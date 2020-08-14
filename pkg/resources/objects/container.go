@@ -10,7 +10,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
-func getXrootdContainersAndVolume(xrootd *v1alpha1.Xrootd, component types.ComponentName) (types.Containers, types.Volumes) {
+func getXrootdContainersAndVolume(xrootd *v1alpha1.XrootdCluster, component types.ComponentName) (types.Containers, types.Volumes) {
 	volumeSet := newInstanceVolumeSet(xrootd.ObjectMeta)
 	volumeSet.addEtcConfigVolume(constant.CfgXrootd)
 	volumeSet.addRunConfigVolume(constant.CfgXrootd)
