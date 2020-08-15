@@ -3,7 +3,7 @@ module github.com/xrootd/xrootd-k8s-operator
 go 1.13
 
 require (
-	github.com/RHsyseng/operator-utils v0.0.0-20200709142328-d5a5812a443f
+	github.com/RHsyseng/operator-utils v0.0.0-20200304191317-2425bf382482
 	github.com/coreos/prometheus-operator v0.41.1 // indirect
 	github.com/go-logr/logr v0.1.0
 	github.com/msoap/byline v1.1.1
