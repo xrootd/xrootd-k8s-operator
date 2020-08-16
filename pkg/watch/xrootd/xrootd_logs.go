@@ -200,9 +200,9 @@ func (lw LogsWatcher) processXrootdPodLogs(pod *corev1.Pod, opt *corev1.PodLogOp
 
 	var regex *regexp.Regexp
 	if lw.Component == constant.XrootdRedirector {
-		regex = regexp.MustCompile(`Protocol: redirector..+ logged in.\n`)
+		regex = regexp.MustCompile(logPatternXrootdRedirectorIsConnected)
 	} else if lw.Component == constant.XrootdWorker {
-		regex = regexp.MustCompile(`Protocol: Logged into .+\n`)
+		regex = regexp.MustCompile(logPatternXrootdWorkerIsConnected)
 	}
 
 	logger.V(1).Info("Grepping and reading...", "regex", regex)
@@ -234,3 +234,6 @@ type podStatus struct {
 	podName string
 	isReady bool
 }
+
+const logPatternXrootdWorkerIsConnected = `Protocol: Logged into .+\n`
+const logPatternXrootdRedirectorIsConnected = `Protocol: redirector..+ logged in.\n`
