@@ -1,5 +1,5 @@
-apiVersion: xrootd.org/v1alpha1
-kind: Xrootd
+apiVersion: xrootd.xrootd.org/v1alpha1
+kind: XrootdCluster
 metadata:
   name: base-xrootd
 spec:

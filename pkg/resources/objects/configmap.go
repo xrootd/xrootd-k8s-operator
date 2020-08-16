@@ -32,8 +32,10 @@ func scanDir(root string, tmplData interface{}) map[string]string {
 		log.Info("Scanning file...", "path", path)
 		if err == nil && !info.IsDir() {
 			files[info.Name()], er = template.ApplyTemplate(path, tmplData)
+		} else if err != nil {
+			er = err
 		}
-		return er
+		return
 	})
 	if err != nil {
 		log.Error(err, "Unable to apply template for", "root", root, "templateData", tmplData)
@@ -58,7 +60,7 @@ func GenerateContainerConfigMap(
 			XrootdSharedPath:         constant.XrootdSharedAdminPath,
 		}
 	}
-	rootDir := filepath.Join("/", "configmaps", string(config), subpath)
+	rootDir := filepath.Join("configmaps", string(config), subpath)
 	data := scanDir(rootDir, tmplData)
 	return v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{

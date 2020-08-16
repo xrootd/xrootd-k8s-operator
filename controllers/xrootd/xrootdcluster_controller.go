@@ -101,6 +101,10 @@ func (r *XrootdClusterReconciler) IsValid(instance controllerutil.Object) (bool,
 }
 
 func (r *XrootdClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	r.AddXrootdLogger()
+	if err := r.StartWatching(); err != nil {
+		return errors.Wrap(err, "failed starting watches")
+	}
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&xrootdv1alpha1.XrootdCluster{}, builder.WithPredicates(predicate.GenerationChangedPredicate{})).
 		Complete(r)
