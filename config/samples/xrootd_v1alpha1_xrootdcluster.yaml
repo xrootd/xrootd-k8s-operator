@@ -3,5 +3,10 @@ kind: XrootdCluster
 metadata:
   name: xrootdcluster-sample
 spec:
-  # Add fields here
-  foo: bar
+  version: "xrootdversion-sample"
+  redirector:
+    replicas: 2
+  worker:
+    replicas: 3
+    storage:
+      capacity: "1Gi"

@@ -29,10 +29,12 @@ jobs:
       - name: Build operator and Load Image
         run: make build
       - name: Deploy operator
-        run: make dev-install
+        run: make deploy
       - name: Run Unit Tests
-        run: make tests-unit
+        run: make test
       - name: Apply a sample manifest
-        run: kubectl apply -k manifests/base
+        run: |
+          make kustomize
+          kustomize build manifests/base | kubectl apply -f -
       - name: Run E2E Tests
-        run: make VERBOSE=true tests-e2e
+        run: make VERBOSE=true test-e2e

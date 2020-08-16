@@ -63,7 +63,7 @@ deploy: manifests kustomize ## Deploy controller in the configured Kubernetes cl
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}:${VERSION}
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
 
-undeploy: manifest kustomize ## Uninstalls the controller and CRDs in the configured Kubernetes cluster in ~/.kube/config
+undeploy: manifests kustomize ## Uninstalls the controller and CRDs in the configured Kubernetes cluster in ~/.kube/config
 	$(KUSTOMIZE) build config/default | kubectl delete -f -
 
 
