@@ -37,11 +37,15 @@ metadata:
       ]
     capabilities: Seamless Upgrades
     categories: Application Runtime
+    certified: "true"
+    containerImage: qserv/xrootd-operator:0.2.0
+    createdAt: 2020-08-17 22:23:00
     description: Create and maintain highly-available xrootd clusters on Kubernetes
     operators.operatorframework.io/builder: operator-sdk-v1.0.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
     repository: https://github.com/xrootd/xrootd-k8s-operator
-  name: xrootd-operator.v0.1.0
+    support: Xrootd Community
+  name: xrootd-operator.v0.2.0
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -129,7 +133,7 @@ spec:
         name: xrootdversions.catalog.xrootd.org
         specDescriptors:
           - description: Is this version deprecated for production use?
-            displayName: Is Deprecated
+            displayName: Is Deprecated?
             path: deprecated
             x-descriptors:
               - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
@@ -162,10 +166,10 @@ spec:
       version: "v4.1.2"
       image: "qserv/xrootd:4.1.2"
     ```
-    - Deploy a basic Xrootd cluster by creating a new `Xrootd` resource in the namespace where the operator is installed.
+    - Deploy a basic Xrootd cluster by creating a new `XrootdCluster` resource in the namespace where the operator is installed.
     ```
-    apiVersion: xrootd.org/v1alpha1
-    kind: Xrootd
+    apiVersion: xrootd.xrootd.org/v1alpha1
+    kind: XrootdCluster
     metadata:
       name: example-xrootd
     spec:
@@ -282,7 +286,7 @@ spec:
                       - --enable-leader-election
                     command:
                       - /manager
-                    image: quay.io/qserv/xrootd-operator:latest
+                    image: qserv/xrootd-operator:0.2.0@sha256:8ddb252aa9b73d7b78bcaf0745d0a03cb33a7e924fc1465de736482c00288d57
                     name: manager
                     resources:
                       limits:
@@ -356,5 +360,4 @@ spec:
   maturity: alpha
   provider:
     name: Xrootd community
-    url: https://github.com/xrootd/
-  version: 0.1.0
+  version: 0.2.0
