@@ -36,7 +36,7 @@ done
 DIR=$(cd "$(dirname "$0")"; pwd -P)
 . ${DIR}/env.sh
 
-ROOT_DIR="$(dirname $DIR)"
+ROOT_DIR="$(dirname "$(dirname $DIR)")"
 
 if [[ -z "$registry" ]]; then
   echo -n "Quay Namespace (ex. johndoe): "

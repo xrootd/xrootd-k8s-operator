@@ -29,6 +29,7 @@ done
 shift $(($OPTIND - 1))
 
 DIR=$(cd "$(dirname "$0")"; pwd -P)
+ROOT_DIR="$(dirname "$(dirname $DIR)")"
 
 NAMESPACE=$(kubectl config view --minify -o='jsonpath={..namespace}')
 NAMESPACE=${NAMESPACE:-default}
@@ -48,10 +49,10 @@ done
 
 # Declare Test scripts to use
 # Not using Array to make it POSIX-compliant
-set -- $(ls $DIR/../tests/e2e/test-*.sh)
+set -- $(ls $ROOT_DIR/tests/e2e/test-*.sh)
 
 # Copy all test files
-kubectl cp "$DIR/../tests/e2e/" "$NAMESPACE/$SHELL_POD":"/tmp"
+kubectl cp "$ROOT_DIR/tests/e2e/" "$NAMESPACE/$SHELL_POD":"/tmp"
 
 # Wait for cluster to run fine!
 sleep 30s
