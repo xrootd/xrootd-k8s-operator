@@ -35,6 +35,8 @@ IMG ?= $(shell . $(ENVFILE) ; echo $${XROOTD_OPERATOR_IMAGE})
 # Produce CRDs that work with apiextensions.k8s.io/v1
 CRD_OPTIONS ?= "crd:crdVersions=v1"
 
+ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
+
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
 GOBIN=$(shell go env GOPATH)/bin
@@ -71,8 +73,16 @@ undeploy: manifests kustomize ## Uninstalls the controller and CRDs in the confi
 
 ##@ Tests
 test: generate fmt vet manifests ## Run tests
-	@echo "....... Running tests ......."
-	go test ./... -coverprofile cover.out
+	mkdir -p ${ENVTEST_ASSETS_DIR}
+	test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/master/hack/setup-envtest.sh
+	@{ \
+		set -e; \
+		source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; \
+		fetch_envtest_tools $(ENVTEST_ASSETS_DIR); \
+		setup_envtest_env $(ENVTEST_ASSETS_DIR); \
+		echo "....... Running tests ......."; \
+		go test ./... -coverprofile cover.out; \
+	}
 
 test-e2e: ## Run e2e tests
 	@echo "....... Running e2e tests ......."

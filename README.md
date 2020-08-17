@@ -30,7 +30,6 @@ A Kubernetes operator to deploy [Xrootd](https://github.com/xrootd/xrootd) at sc
 - Same prerequisites for [Installation](#Installation)
 - [Go](https://golang.org/doc/install) v1.13+
 - [operator-sdk](https://sdk.operatorframework.io/docs/install-operator-sdk/)
-- [kubebuilder](https://github.com/kubernetes-sigs/kubebuilder)
 
 ### Build operator
 
