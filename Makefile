@@ -17,6 +17,8 @@ endif
 
 # Current Operator version
 VERSION ?= $(shell . $(RELEASE_SUPPORT) ; getVersion)
+# Current Bundle Version
+BUNDLE_VERSION ?= $(shell . $(ENVFILE) ; echo $${XROOTD_OPERATOR_VERSION})
 # Default bundle image tag
 BUNDLE_IMG ?= $(shell . $(ENVFILE) ; echo $${XROOTD_OPERATOR_BUNDLE_IMAGE})
 # Options for 'bundle-build'
@@ -76,6 +78,7 @@ test-e2e: ## Run e2e tests
 	@echo "....... Running e2e tests ......."
 	@$(SCRIPTS_DIR)/run-e2e-tests.sh $(VERBOSE_SHORT_ARG)
 
+
 ##@ Code
 fmt: ## Run go fmt against code
 	go fmt ./...
@@ -102,7 +105,7 @@ docker-push: ## Push the docker image
 bundle: manifests ## Generate bundle manifests and metadata, then validate generated files.
 	operator-sdk generate kustomize manifests -q
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
-	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
+	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(BUNDLE_VERSION) $(BUNDLE_METADATA_OPTS)
 	operator-sdk bundle validate ./bundle
 
 .PHONY: bundle-build
@@ -124,6 +127,10 @@ version: ## Shows the current release version based on version/version.go
 .PHONY: version-image
 version-image: .release ## Shows the current release tag based on the directory content.
 	@. $(RELEASE_SUPPORT); getVersion
+
+sample: kustomize ## Install sample manifests
+	$(KUSTOMIZE) build manifests/base | kubectl apply -f -
+
 
 # find or download controller-gen
 # download controller-gen if necessary

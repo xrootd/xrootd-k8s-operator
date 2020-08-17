@@ -16,7 +16,7 @@ jobs:
       - name: Setup Operator SDK
         uses: shivanshs9/setup-k8s-operator-sdk@v1
         with:
-          version: "^0.18.0"
+          version: "^1.0.0"
       - name: Set up Python 3.x
         uses: actions/setup-python@v2
         with:

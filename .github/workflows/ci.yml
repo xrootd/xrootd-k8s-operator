@@ -23,18 +23,23 @@ jobs:
       - name: Setup Operator SDK
         uses: shivanshs9/setup-k8s-operator-sdk@v1
         with:
-          version: "^0.18.0"
+          version: "^1.0.0"
       - name: Setup KinD
         uses: engineerd/setup-kind@v0.4.0
+      - name: Setup KubeBuilder
+        run: |
+          os=$(go env GOOS)
+          arch=$(go env GOARCH)
+          curl -L https://go.kubebuilder.io/dl/2.3.1/${os}/${arch} | tar -xz -C /tmp/
+          sudo mv /tmp/kubebuilder_2.3.1_${os}_${arch} /usr/local/kubebuilder
+          export PATH=$PATH:/usr/local/kubebuilder/bin
+      - name: Run Unit Tests
+        run: make test
       - name: Build operator and Load Image
         run: make build
       - name: Deploy operator
         run: make deploy
-      - name: Run Unit Tests
-        run: make test
       - name: Apply a sample manifest
-        run: |
-          make kustomize
-          kustomize build manifests/base | kubectl apply -f -
+        run: make sample
       - name: Run E2E Tests
         run: make VERBOSE=true test-e2e
