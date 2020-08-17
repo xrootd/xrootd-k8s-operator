@@ -14,7 +14,6 @@ COPY main.go main.go
 COPY apis/ apis/
 COPY pkg/ pkg/
 COPY controllers/ controllers/
-COPY configmaps/ configmaps/
 
 # Build
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o manager main.go
@@ -23,6 +22,9 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o manager 
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
 FROM gcr.io/distroless/static:nonroot
 WORKDIR /
+COPY configmaps/ /configmaps/
+ENV XROOTD_OPERATOR_CONFIGMAPS_PATH=/configmaps/
+
 COPY --from=builder /workspace/manager .
 USER nonroot:nonroot
 

@@ -60,8 +60,12 @@ func GenerateContainerConfigMap(
 			XrootdSharedPath:         constant.XrootdSharedAdminPath,
 		}
 	}
-	rootDir := filepath.Join("configmaps", string(config), subpath)
-	data := scanDir(rootDir, tmplData)
+	rootDir := os.Getenv("XROOTD_OPERATOR_CONFIGMAPS_PATH")
+	if len(rootDir) == 0 {
+		rootDir = "configmaps"
+	}
+	configDir := filepath.Join(rootDir, string(config), subpath)
+	data := scanDir(configDir, tmplData)
 	return v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
