@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/xrootd/xrootd-k8s-operator/pkg/apis/xrootd/v1alpha1"
+	"github.com/xrootd/xrootd-k8s-operator/apis/xrootd/v1alpha1"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/constant"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/template"
@@ -32,8 +32,10 @@ func scanDir(root string, tmplData interface{}) map[string]string {
 		log.Info("Scanning file...", "path", path)
 		if err == nil && !info.IsDir() {
 			files[info.Name()], er = template.ApplyTemplate(path, tmplData)
+		} else if err != nil {
+			er = err
 		}
-		return er
+		return
 	})
 	if err != nil {
 		log.Error(err, "Unable to apply template for", "root", root, "templateData", tmplData)
@@ -42,7 +44,7 @@ func scanDir(root string, tmplData interface{}) map[string]string {
 }
 
 func GenerateContainerConfigMap(
-	xrootd *v1alpha1.Xrootd, objectName types.ObjectName,
+	xrootd *v1alpha1.XrootdCluster, objectName types.ObjectName,
 	compLabels types.Labels, config types.ConfigName,
 	subpath string,
 ) v1.ConfigMap {
@@ -58,8 +60,12 @@ func GenerateContainerConfigMap(
 			XrootdSharedPath:         constant.XrootdSharedAdminPath,
 		}
 	}
-	rootDir := filepath.Join("/", "configmaps", string(config), subpath)
-	data := scanDir(rootDir, tmplData)
+	rootDir := os.Getenv("XROOTD_OPERATOR_CONFIGMAPS_PATH")
+	if len(rootDir) == 0 {
+		rootDir = "configmaps"
+	}
+	configDir := filepath.Join(rootDir, string(config), subpath)
+	data := scanDir(configDir, tmplData)
 	return v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,

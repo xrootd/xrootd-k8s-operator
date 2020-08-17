@@ -1,0 +1,21 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  name: xrootd-operator.vX.Y.Z
+spec:
+  customresourcedefinitions:
+    owned:
+      - name: xrootdversions.catalog.xrootd.org
+        specDescriptors:
+          - description: The Xrootd version used in the image
+            displayName: Xrootd Version
+            path: version
+          - description: The docker image name and version of xrootd
+            displayName: Image
+            path: image
+          - description: Is this version deprecated for production use?
+            displayName: Deprecated
+            path: deprecated
+            x-descriptors:
+              - "urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
+              - "urn:alm:descriptor:com.tectonic.ui:advanced"

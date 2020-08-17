@@ -1,7 +1,7 @@
 package objects
 
 import (
-	"github.com/xrootd/xrootd-k8s-operator/pkg/apis/xrootd/v1alpha1"
+	"github.com/xrootd/xrootd-k8s-operator/apis/xrootd/v1alpha1"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/constant"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/types"
 	appsv1 "k8s.io/api/apps/v1"
@@ -10,7 +10,7 @@ import (
 )
 
 func GenerateXrootdStatefulSet(
-	xrootd *v1alpha1.Xrootd, objectName types.ObjectName,
+	xrootd *v1alpha1.XrootdCluster, objectName types.ObjectName,
 	compLabels types.Labels, componentName types.ComponentName,
 ) appsv1.StatefulSet {
 	labels := compLabels

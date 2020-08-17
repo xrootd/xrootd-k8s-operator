@@ -1,4 +1,5 @@
 # Xrootd Operator [![Xrootd operator CI](https://github.com/xrootd/xrootd-k8s-operator/workflows/Xrootd%20operator%20CI/badge.svg)](https://github.com/xrootd/xrootd-k8s-operator/actions?query=workflow%3A"Xrootd+operator+CI") [![Xrootd operator OLM](https://github.com/xrootd/xrootd-k8s-operator/workflows/Xrootd%20operator%20OLM/badge.svg)](https://github.com/xrootd/xrootd-k8s-operator/actions?query=workflow%3A"Xrootd+operator+OLM")
+
 [![Go Report Card](https://goreportcard.com/badge/github.com/xrootd/xrootd-k8s-operator)](https://goreportcard.com/report/github.com/xrootd/xrootd-k8s-operator)
 
 A Kubernetes operator to deploy [Xrootd](https://github.com/xrootd/xrootd) at scale, in order to ease and fully automate deployment and management of XRootD clusters.
@@ -32,35 +33,35 @@ A Kubernetes operator to deploy [Xrootd](https://github.com/xrootd/xrootd) at sc
 
 ### Build operator
 
-- Run `make code` to run code format and generate code via operator-sdk.
-- Run `make build` to build operator image from scratch and loads it in the k8s cluster. Most of the time, this is sufficient to run if there has been no change in CRs ([pkg/apis](pkg/apis))
+- Run `make manager` to locally build operator binary and `make run` to run it against the configured Kubernetes cluster.
+- Run `make build` to build operator image from scratch and loads it in the k8s cluster.
 - The build command can be configured with the cluster's name and provider to target where the built operator image will be loaded. Set the following environment variables:
   - `CLUSTER_PROVIDER=(kind/k3s/minishift)`
   - `CLUSTER_NAME=<cluster name>`
 
 ### Install operator
 
-- Run `make dev-install` to deploy the operator image in the cluster, along with applying the required roles, service accounts etc.
+- Run `make deploy` to deploy the operator image in the cluster, along with applying the required roles, service accounts etc.
+- To uninstall the CRDs, run `make uninstall`. To cleanup everything, including the operator deployment, run `make undeploy`.
 
 ### Bundle
 
-Xrootd Operator is integrated with OLM.
+Xrootd Operator is integrated with OLM and configured to use [Bundle](https://sdk.operatorframework.io/docs/olm-integration/quickstart-bundle/) format.
 
-- Install [operator-courier](https://pypi.org/project/operator-courier) python library for linting of Operator Metadata and to push the application information to quay.io appregistry.
-- To generate OLM CSV manifest, run `make olm-generate`.
-- To push the operator bundle information to quay.io, run `make push-bundle`.
+- To generate OLM CSV manifests and bundle metadata, run `make bundle`.
+- To build the operator bundle image, run `make bundle-build`.
 
 ### Testing
 
-- **Unit Tests:** Run the unit tests with `make tests-unit`.
-- **Integration Tests:** Run the suite of e2e tests with `make tests-e2e`.
+- **Unit Tests:** Run the unit tests with `make test`.
+- **Integration Tests:** Run the suite of e2e tests with `make test-e2e`.
 
 ### OpenShift Cluster
 
 - For local development, it's recommended to use [CodeReady Containers](https://code-ready.github.io/crc/) since it supports Openshift v4+. Minishift is a suitable alternative, however it only supports till OpenShift v3.
-- To test operator via scripted approach, `make dev-install` works.
+- To test operator via scripted approach, `make deploy` works.
 - To test operator using OLM, follow [testing guide](https://github.com/operator-framework/community-operators/blob/master/docs/testing-operators.md#testing-operator-deployment-on-kubernetes) for deployment using custom images.
-- Simply run `make push-bundle` to generate the CSV manifests and push to quay.io appregistry.
+  > TODO: [Testing bundles](https://sdk.operatorframework.io/docs/olm-integration/quickstart-bundle/#testing-bundles) is still not officially supported.
 
 > **NOTE:**
 > Minishift uses Kubernetes v1.11.x, so it only supports till OLM v0.14.x (because later OLM versions uses apiextensions.k8s.io/v1 for CRD manifests)

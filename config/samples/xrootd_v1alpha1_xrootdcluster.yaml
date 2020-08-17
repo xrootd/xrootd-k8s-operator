@@ -1,0 +1,12 @@
+apiVersion: xrootd.xrootd.org/v1alpha1
+kind: XrootdCluster
+metadata:
+  name: xrootdcluster-sample
+spec:
+  version: "xrootdversion-sample"
+  redirector:
+    replicas: 2
+  worker:
+    replicas: 3
+    storage:
+      capacity: "1Gi"

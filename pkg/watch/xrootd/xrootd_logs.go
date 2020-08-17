@@ -10,7 +10,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/msoap/byline"
 	"github.com/pkg/errors"
-	xrootdv1alpha1 "github.com/xrootd/xrootd-k8s-operator/pkg/apis/xrootd/v1alpha1"
+	xrootdv1alpha1 "github.com/xrootd/xrootd-k8s-operator/apis/xrootd/v1alpha1"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/controller/reconciler"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/constant"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/k8sutil"
@@ -39,7 +39,7 @@ func (lw LogsWatcher) Watch(requests <-chan reconcile.Request) error {
 	for request := range requests {
 		reqLogger = log.WithValues("request", request, "component", lw.Component)
 
-		instance := &xrootdv1alpha1.Xrootd{}
+		instance := &xrootdv1alpha1.XrootdCluster{}
 		if err := lw.reconciler.GetResourceInstance(request, instance); err != nil {
 			return err
 		}
@@ -65,12 +65,12 @@ func (lw LogsWatcher) monitorXrootdStatus(request reconcile.Request) error {
 	if err != nil {
 		return errors.Wrap(err, "unable to get kubernetes clientset")
 	}
-	var instance *xrootdv1alpha1.Xrootd
+	var instance *xrootdv1alpha1.XrootdCluster
 
 	// infinite loop to monitor all pods of xrootd cluster
 	for {
 		time.Sleep(waitMemberReadyDelay)
-		instance = &xrootdv1alpha1.Xrootd{}
+		instance = &xrootdv1alpha1.XrootdCluster{}
 		if err := lw.reconciler.GetResourceInstance(request, instance); err != nil {
 			return errors.Wrap(err, "failed to refresh xrootd instance")
 		}
@@ -97,7 +97,7 @@ func (lw LogsWatcher) monitorXrootdStatus(request reconcile.Request) error {
 	return nil
 }
 
-func (lw LogsWatcher) updateInstanceStatus(instance *xrootdv1alpha1.Xrootd, countPods int, resultChannel <-chan podStatus) error {
+func (lw LogsWatcher) updateInstanceStatus(instance *xrootdv1alpha1.XrootdCluster, countPods int, resultChannel <-chan podStatus) error {
 	logger := log.WithValues("instance", instance.Name, "component", lw.Component)
 	logger.Info("Waiting for pod results...", "podCount", countPods)
 	unreadyPods := make([]string, 0)
@@ -200,9 +200,9 @@ func (lw LogsWatcher) processXrootdPodLogs(pod *corev1.Pod, opt *corev1.PodLogOp
 
 	var regex *regexp.Regexp
 	if lw.Component == constant.XrootdRedirector {
-		regex = regexp.MustCompile(`Protocol: redirector..+ logged in.\n`)
+		regex = regexp.MustCompile(logPatternXrootdRedirectorIsConnected)
 	} else if lw.Component == constant.XrootdWorker {
-		regex = regexp.MustCompile(`Protocol: Logged into .+\n`)
+		regex = regexp.MustCompile(logPatternXrootdWorkerIsConnected)
 	}
 
 	logger.V(1).Info("Grepping and reading...", "regex", regex)
@@ -234,3 +234,6 @@ type podStatus struct {
 	podName string
 	isReady bool
 }
+
+const logPatternXrootdWorkerIsConnected = `Protocol: Logged into .+\n`
+const logPatternXrootdRedirectorIsConnected = `Protocol: redirector..+ logged in.\n`

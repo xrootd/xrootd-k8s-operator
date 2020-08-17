@@ -4,7 +4,7 @@ VERBOSE_SHORT_ARG := $(if $(filter $(VERBOSE),true),-v,)
 VERBOSE_LONG_ARG := $(if $(filter $(VERBOSE),true),--verbose,)
 
 ROOT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
-SCRIPTS_DIR := $(ROOT_DIR)/scripts
+SCRIPTS_DIR := $(ROOT_DIR)/hack/scripts
 ENVFILE := $(SCRIPTS_DIR)/env.sh
 RELEASE_SUPPORT := $(SCRIPTS_DIR)/release-support.sh
 
@@ -15,128 +15,165 @@ ifdef CLUSTER_NAME
 	IMAGE_LOADER += -c $(CLUSTER_NAME)
 endif
 
-OPERATOR_IMAGE := $(shell . $(ENVFILE) ; echo $${XROOTD_OPERATOR_IMAGE})
-VERSION := $(shell . $(RELEASE_SUPPORT) ; getVersion)
-BUNDLE_MANIFEST_DIR := $(shell . $(ENVFILE) ; echo $${XROOTD_OPERATOR_BUNDLE_MANIFEST_VERSION_DIR})
+# Current Operator version
+VERSION ?= $(shell . $(RELEASE_SUPPORT) ; getVersion)
+# Current Bundle Version
+BUNDLE_VERSION ?= $(shell . $(ENVFILE) ; echo $${XROOTD_OPERATOR_VERSION})
+# Default bundle image tag
+BUNDLE_IMG ?= $(shell . $(ENVFILE) ; echo $${XROOTD_OPERATOR_BUNDLE_IMAGE})
+# Options for 'bundle-build'
+ifneq ($(origin CHANNELS), undefined)
+BUNDLE_CHANNELS := --channels=$(CHANNELS)
+endif
+ifneq ($(origin DEFAULT_CHANNEL), undefined)
+BUNDLE_DEFAULT_CHANNEL := --default-channel=$(DEFAULT_CHANNEL)
+endif
+BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 
-.PHONY: help version bundle push-bundle lint-bundle olm-generate uninstall \
-	code-vet code-fmt code code-gen build-image build dev-install clean
+# Image URL to use all building/pushing image targets
+IMG ?= $(shell . $(ENVFILE) ; echo $${XROOTD_OPERATOR_IMAGE})
+# Produce CRDs that work with apiextensions.k8s.io/v1
+CRD_OPTIONS ?= "crd:crdVersions=v1"
 
+ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
+
+# Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
+ifeq (,$(shell go env GOBIN))
+GOBIN=$(shell go env GOPATH)/bin
+else
+GOBIN=$(shell go env GOBIN)
+endif
+
+all: manager
+
+##@ Controller
+manager: generate fmt vet ## Build manager binary
+	go build -o bin/manager main.go
+
+run: generate fmt vet manifests ## Run against the configured Kubernetes cluster in ~/.kube/config
+	go run ./main.go
+
+install: manifests kustomize ## Install CRDs into a cluster
+	$(KUSTOMIZE) build config/crd | kubectl apply -f -
+
+uninstall: manifests kustomize ## Uninstall CRDs from a cluster
+	$(KUSTOMIZE) build config/crd | kubectl delete -f -
+
+build: docker-build ## Build the Operator Image and load it in your cluster
+	@echo "Loading operator image in '$(if $(CLUSTER_NAME),$(CLUSTER_NAME),$(CLUSTER_PROVIDER))' cluster"
+	@$(IMAGE_LOADER) ${IMG}:${VERSION}
+
+deploy: manifests kustomize ## Deploy controller in the configured Kubernetes cluster in ~/.kube/config
+	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}:${VERSION}
+	$(KUSTOMIZE) build config/default | kubectl apply -f -
+
+undeploy: manifests kustomize ## Uninstalls the controller and CRDs in the configured Kubernetes cluster in ~/.kube/config
+	$(KUSTOMIZE) build config/default | kubectl delete -f -
+
+
+##@ Tests
+test: generate fmt vet manifests ## Run tests
+	mkdir -p ${ENVTEST_ASSETS_DIR}
+	test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/master/hack/setup-envtest.sh
+	@{ \
+		set -e; \
+		source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; \
+		fetch_envtest_tools $(ENVTEST_ASSETS_DIR); \
+		setup_envtest_env $(ENVTEST_ASSETS_DIR); \
+		echo "....... Running tests ......."; \
+		go test ./... -coverprofile cover.out; \
+	}
+
+test-e2e: ## Run e2e tests
+	@echo "....... Running e2e tests ......."
+	@$(SCRIPTS_DIR)/run-e2e-tests.sh $(VERBOSE_SHORT_ARG)
+
+
+##@ Code
+fmt: ## Run go fmt against code
+	go fmt ./...
+
+vet: ## Run go vet against code
+	go vet ./...
+
+generate: controller-gen ## Generate code
+	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
+
+manifests: controller-gen ## Generate manifests e.g. CRD, RBAC etc.
+	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+
+docker-build: ## Build the docker image
+	docker build . -t ${IMG}:${VERSION}
+	docker tag ${IMG}:${VERSION} ${IMG}:latest
+
+docker-push: ## Push the docker image
+	docker push ${IMG}
+
+
+##@ OLM
+.PHONY: bundle
+bundle: kustomize manifests ## Generate bundle manifests and metadata, then validate generated files.
+	operator-sdk generate kustomize manifests -q
+	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
+	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(BUNDLE_VERSION) $(BUNDLE_METADATA_OPTS)
+	operator-sdk bundle validate ./bundle
+
+.PHONY: bundle-build
+bundle-build: ## Build the bundle image.
+	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
+
+
+##@ Misc.
 help: ## Display this help
 	@echo -e "Usage:\n  make \033[36m<target>\033[0m"
 	@awk 'BEGIN {FS = ":.*##"}; \
 		/^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } \
 		/^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
-##@ Application
-
-bundle: $(BUNDLE_MANIFEST_DIR) ## Bundles the operator in OLM format
-
-push-bundle: bundle ## Pushes the OLM app bundle to quay.io
-	@$(SHELL) $(SCRIPTS_DIR)/olm-push-application.sh $(VERBOSE_SHORT_ARG)
-
-$(BUNDLE_MANIFEST_DIR):
-	$(MAKE) olm-generate
-
-uninstall: ## Uninstall the operator
-	@echo "....... Uninstalling ......."
-	@$(ROOT_DIR)/deploy/operator.sh -u
-
-##@ Development
-
-code-vet: ## Run go vet for this project. More info: https://golang.org/cmd/vet/
-	@echo "go vet"
-	go vet $$(go list ./... )
-
-code-fmt: ## Run go fmt for this project
-	@echo "go fmt"
-	go fmt $$(go list ./... )
-
-code: ## Run the default dev commands
-	@echo "Running the common required commands for development purposes"
-	- make code-fmt
-	- make code-vet
-	- make code-gen
-
-code-gen: ## Run the operator-sdk commands to generated code (k8s and openapi)
-	@echo "Updating the deep copy files with the changes in the API"
-	@GOROOT=`pwd` $(OPERATOR_SDK) generate k8s $(VERBOSE_LONG_ARG)
-	@echo "Updating the CRD files with the OpenAPI validations"
-	$(OPERATOR_SDK) generate crds $(VERBOSE_LONG_ARG)
-
-dev-install: ## Deploy the operator locally
-	@echo "....... Installing local build ......."
-	@$(ROOT_DIR)/deploy/operator.sh -d $(VERBOSE_SHORT_ARG)
-
-build: build-image ## Build the Operator Image and load it in your cluster
-	@echo "Loading operator image in '$(if $(CLUSTER_NAME),$(CLUSTER_NAME),$(CLUSTER_PROVIDER))' cluster"
-	@$(IMAGE_LOADER) $(OPERATOR_IMAGE):$(VERSION)
-
-build-image: ## Build the operator docker image
-	$(OPERATOR_SDK) build $(OPERATOR_IMAGE):$(VERSION) $(VERBOSE_LONG_ARG)
-	@docker tag $(OPERATOR_IMAGE):$(VERSION) $(OPERATOR_IMAGE):latest
-
-clean: ## Clean build outputs
-	rm -r build/_output/
-
-lint-bundle: ## Lint metadata and manifest syntax using operator-courier
-	operator-courier verify --ui_validate_io $(BUNDLE_MANIFEST_DIR)/..
-
-##@ Versioning
-
-version-image: .release ## Shows the current release tag based on the directory content.
-	@. $(RELEASE_SUPPORT); getVersion
-
+.PHONY: version
 version: ## Shows the current release version based on version/version.go
 	@. $(ENVFILE) ; echo $$XROOTD_OPERATOR_VERSION
 
-olm-generate: ## Generates the required CSV manifests
-	@echo "....... Generating CSV ......."
-	@$(SHELL) $(SCRIPTS_DIR)/olm-generate-csv.sh
+.PHONY: version-image
+version-image: .release ## Shows the current release tag based on the directory content.
+	@. $(RELEASE_SUPPORT); getVersion
 
-tag-patch-release: VERSION := $(shell . $(RELEASE_SUPPORT); nextPatchLevel)
-tag-patch-release: .release tag
+sample: kustomize ## Install sample manifests
+	$(KUSTOMIZE) build manifests/base | kubectl apply -f -
 
-tag-minor-release: VERSION := $(shell . $(RELEASE_SUPPORT); nextMinorLevel)
-tag-minor-release: .release tag
 
-tag-major-release: VERSION := $(shell . $(RELEASE_SUPPORT); nextMajorLevel)
-tag-major-release: .release tag
+# find or download controller-gen
+# download controller-gen if necessary
+controller-gen:
+ifeq (, $(shell which controller-gen))
+	@{ \
+	set -e ;\
+	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
+	cd $$CONTROLLER_GEN_TMP_DIR ;\
+	go mod init tmp ;\
+	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.3.0 ;\
+	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
+	}
+CONTROLLER_GEN=$(GOBIN)/controller-gen
+else
+CONTROLLER_GEN=$(shell which controller-gen)
+endif
 
-patch-bump: tag-patch-release release ### Increments the patch release level, build and push to registry.
-	@echo "Patch release: $(VERSION)"
-
-minor-bump: tag-minor-release release ### Increments the minor release level, build and push to registry.
-	@echo "Minor release: $(VERSION)"
-
-major-bump: tag-major-release release ### Increments the major release level, build and push to registry.
-	@echo "Major release: $(VERSION)"
-
-tag: TAG=$(shell . $(RELEASE_SUPPORT); getTag $(VERSION))
-tag: check-status
-	@. $(RELEASE_SUPPORT) ; ! tagExists $(TAG) || (echo "ERROR: tag $(TAG) for version $(VERSION) already tagged in git" >&2 && exit 1) ;
-	@. $(RELEASE_SUPPORT) ; setRelease $(VERSION)
-	git add -u
-	git commit -m "chore: Version bump → $(VERSION)" ;
-	git tag $(TAG) ;
-	@ if [ -n "$(shell git remote -v)" ] ; then git push --tags ; else echo 'no remote to push tags to' ; fi
-
-check-status: ## Checks whether there are outstanding changes.
-	@. $(RELEASE_SUPPORT) ; ! hasChanges || (echo "ERROR: there are still outstanding changes" >&2 && exit 1) ;
-
-check-release: .release ## Checks whether the current directory matches the tagged release in git.
-	@. $(RELEASE_SUPPORT) ; tagExists $(TAG) || (echo "ERROR: version not yet tagged in git. make [minor,major,patch]-bump." >&2 && exit 1) ;
-	@. $(RELEASE_SUPPORT) ; ! differsFromRelease $(TAG) || (echo "ERROR: current directory differs from tagged $(TAG). make [minor,major,patch]-release." ; exit 1)
-
-##@ Tests
-
-tests-e2e: ## Run e2e tests
-	@echo "....... Running e2e tests ......."
-	@$(SCRIPTS_DIR)/run-e2e-tests.sh $(VERBOSE_SHORT_ARG)
-
-tests-unit: ## Run unit tests
-	@echo "....... Running unit tests ......."
-	@echo "None found"
+# find or download kustomize if necessary
+kustomize:
+ifeq (, $(shell which kustomize))
+	@{ \
+	set -e ;\
+	KUSTOMIZE_GEN_TMP_DIR=$$(mktemp -d) ;\
+	cd $$KUSTOMIZE_GEN_TMP_DIR ;\
+	go mod init tmp ;\
+	go get sigs.k8s.io/kustomize/kustomize/v3@v3.5.4 ;\
+	rm -rf $$KUSTOMIZE_GEN_TMP_DIR ;\
+	}
+KUSTOMIZE=$(GOBIN)/kustomize
+else
+KUSTOMIZE=$(shell which kustomize)
+endif
 
 .release:
 	@echo "release=0.0.0" > .release

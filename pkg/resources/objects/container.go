@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/xrootd/xrootd-k8s-operator/pkg/apis/xrootd/v1alpha1"
+	"github.com/xrootd/xrootd-k8s-operator/apis/xrootd/v1alpha1"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/constant"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/types"
 	v1 "k8s.io/api/core/v1"
 )
 
-func getXrootdContainersAndVolume(xrootd *v1alpha1.Xrootd, component types.ComponentName) (types.Containers, types.Volumes) {
+func getXrootdContainersAndVolume(xrootd *v1alpha1.XrootdCluster, component types.ComponentName) (types.Containers, types.Volumes) {
 	volumeSet := newInstanceVolumeSet(xrootd.ObjectMeta)
 	volumeSet.addEtcConfigVolume(constant.CfgXrootd)
 	volumeSet.addRunConfigVolume(constant.CfgXrootd)

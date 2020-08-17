@@ -2,7 +2,7 @@ package resources
 
 import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
-	"github.com/xrootd/xrootd-k8s-operator/pkg/apis/xrootd/v1alpha1"
+	"github.com/xrootd/xrootd-k8s-operator/apis/xrootd/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -21,10 +21,10 @@ type Resources []Resource
 // InstanceResourceSet contains Resources for a given Xrootd instance
 type InstanceResourceSet struct {
 	resources Resources
-	xrootd    *v1alpha1.Xrootd
+	xrootd    *v1alpha1.XrootdCluster
 }
 
-func NewInstanceResourceSet(xrootd *v1alpha1.Xrootd) *InstanceResourceSet {
+func NewInstanceResourceSet(xrootd *v1alpha1.XrootdCluster) *InstanceResourceSet {
 	return &InstanceResourceSet{
 		resources: Resources(make([]Resource, 0)),
 		xrootd:    xrootd,
