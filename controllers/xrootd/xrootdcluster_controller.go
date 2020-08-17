@@ -59,6 +59,7 @@ var _ reconciler.StatusReconciler = &XrootdClusterReconciler{}
 
 // +kubebuilder:rbac:groups=xrootd.xrootd.org,resources=xrootdclusters,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=xrootd.xrootd.org,resources=xrootdclusters/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=catalog.xrootd.org,resources=xrootdversions,verbs=get;list;watch
 
 func (r *XrootdClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	// ctx := context.Background()
