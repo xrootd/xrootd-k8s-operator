@@ -66,9 +66,12 @@ type XrootdClusterStatus struct {
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
-	// Phase is the cluster running phase
-	Phase  ClusterPhase `json:"phase"`
-	Reason string       `json:"reason,omitempty"`
+	// Phase is the current phase of the cluster
+	// +operator-sdk:csv:customresourcedefinitions:type=status,displayName="Phase",xDescriptors="urn:alm:descriptor:io.kubernetes.phase"
+	Phase ClusterPhase `json:"phase"`
+	// Reason explains the current phase of the cluster.
+	// +operator-sdk:csv:customresourcedefinitions:type=status,displayName="Phase Details",xDescriptors="urn:alm:descriptor:io.kubernetes.phase:reason"
+	Reason string `json:"reason,omitempty"`
 
 	// Condition keeps track of all cluster conditions, if they exist.
 	Conditions []ClusterCondition `json:"conditions,omitempty"`
@@ -181,7 +184,7 @@ func newClusterCondition(condType ClusterConditionType, status v1.ConditionStatu
 
 // XrootdProtocolStatus defines the version info and image of running xrootd software
 type XrootdProtocolStatus struct {
-	// Version is the current xrootd version
+	// Version is the current xrootd version used in the cluster
 	Version string `json:"version"`
 	// Image is the currently used image for xrootd containers
 	Image string `json:"image"`

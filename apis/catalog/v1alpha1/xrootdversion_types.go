@@ -34,11 +34,14 @@ type XrootdVersionSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Xrootd Version in the provided image
+	// Version of the xrootd application in the provided image
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Xrootd Version"
 	Version types.CatalogVersion `json:"version"`
-	// Whether this version is deprecated or not
+	// Is this version deprecated for production use?
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Is Deprecated?",xDescriptors="urn:alm:descriptor:com.tectonic.ui:booleanSwitch"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,xDescriptors="urn:alm:descriptor:com.tectonic.ui:advanced"
 	Deprecated bool `json:"deprecated,omitempty"`
-	// Image must have a tag
+	// Image name, with a tag, with xrootd installed
 	// +kubebuilder:validation:Pattern=".+:.+"
 	Image string `json:"image"`
 }
@@ -52,7 +55,9 @@ type XrootdVersionStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 
-// XrootdVersion is the Schema for the xrootdversions API
+// XrootdVersion is the Schema for the xrootdversions API.
+// Before deploying Xrootd Cluster, required Xrootd protocol version and its docker image must be provided
+// using this CRD in the cluster's target namespace.
 type XrootdVersion struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

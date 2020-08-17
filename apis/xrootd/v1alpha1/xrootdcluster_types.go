@@ -36,6 +36,7 @@ type XrootdClusterSpec struct {
 
 	// Version must be name of XrootdVersion CR instance which defines the xrootd protcol image to use in the cluster pods.
 	// The requested XrootdVersion instance must be installed in the target namespace using XrootdVersion CRD.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Xrootd Version Name",xDescriptors="urn:alm:descriptor:io.kubernetes:catalog.xrootd.org:v1alpha1:XrootdVersion"
 	Version    string               `json:"version"`
 	Worker     XrootdWorkerSpec     `json:"worker,omitempty"`
 	Redirector XrootdRedirectorSpec `json:"redirector,omitempty"`
@@ -53,14 +54,20 @@ type XrootdStorageSpec struct {
 
 // XrootdWorkerSpec defines the desired state of Xrootd workers
 type XrootdWorkerSpec struct {
+	// The desired number of worker pods for the xrootd cluster
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Worker Replicas",xDescriptors="urn:alm:descriptor:com.tectonic.ui:podCount"
 	// +kubebuilder:validation:Minimum=1
 	// +kubebuilder:default=1
-	Replicas int32             `json:"replicas,omitempty"`
-	Storage  XrootdStorageSpec `json:"storage,omitempty"`
+	Replicas int32 `json:"replicas,omitempty"`
+	// The desired storage class to use for Dynamic Persistent Volume Provisioning for Worker pods
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Storage Class",xDescriptors="urn:alm:descriptor:io.kubernetes:storage.k8s.io:v1beta1:StorageClass"
+	Storage XrootdStorageSpec `json:"storage,omitempty"`
 }
 
 // XrootdRedirectorSpec defines the desired state of Xrootd redirectors
 type XrootdRedirectorSpec struct {
+	// The desired number of redirector pods for the xrootd cluster
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Redirector Replicas",xDescriptors="urn:alm:descriptor:com.tectonic.ui:podCount"
 	// +kubebuilder:validation:Minimum=1
 	// +kubebuilder:default=1
 	Replicas int32 `json:"replicas,omitempty"`
@@ -73,7 +80,9 @@ type XrootdConfigSpec struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 
-// XrootdCluster is the Schema for the xrootdclusters API
+// XrootdCluster is the Schema for the xrootdclusters API.
+// This denotes a single Xrootd cluster configured with requested version, xrd config and other relevant configurable options.
+// +operator-sdk:csv:customresourcedefinitions:resources={{StatefulSet,v1,"${XROOTD_NAME}-xrootd-redirector"},{StatefulSet,v1,"${XROOTD_NAME}-xrootd-worker"},{Service,v1,"${XROOTD_NAME}-xrootd-redirector"},{Service,v1,"${XROOTD_NAME}-xrootd-worker"}}
 type XrootdCluster struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
