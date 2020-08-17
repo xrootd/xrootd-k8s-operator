@@ -19,7 +19,8 @@ fi
 export XROOTD_OPERATOR_NAME="xrootd-operator"
 export XROOTD_OPERATOR_VERSION=$(awk '$1 == "Version" {gsub(/"/, "", $3); print $3}' version/version.go)
 export XROOTD_OPERATOR_IMAGE_VERSION="$(. $DIR/release-support.sh ; getVersion)"
-export XROOTD_OPERATOR_REGISTRY="quay.io/"
+export XROOTD_OPERATOR_REGISTRY=""
+# export XROOTD_OPERATOR_REGISTRY="quay.io/"
 
 ## Container Image vars
 export XROOTD_OPERATOR_IMAGE_REPO="qserv/$XROOTD_OPERATOR_NAME"

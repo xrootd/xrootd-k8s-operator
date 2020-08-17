@@ -123,13 +123,7 @@ bundle-build: ## Build the bundle image.
 	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
 
 
-##@ Misc.
-help: ## Display this help
-	@echo -e "Usage:\n  make \033[36m<target>\033[0m"
-	@awk 'BEGIN {FS = ":.*##"}; \
-		/^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } \
-		/^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
-
+##@ Versioning
 .PHONY: version
 version: ## Shows the current release version based on version/version.go
 	@. $(ENVFILE) ; echo $$XROOTD_OPERATOR_VERSION
@@ -137,6 +131,48 @@ version: ## Shows the current release version based on version/version.go
 .PHONY: version-image
 version-image: .release ## Shows the current release tag based on the directory content.
 	@. $(RELEASE_SUPPORT); getVersion
+
+tag-patch-release: VERSION := $(shell . $(RELEASE_SUPPORT); nextPatchLevel)
+tag-patch-release: .release tag
+
+tag-minor-release: VERSION := $(shell . $(RELEASE_SUPPORT); nextMinorLevel)
+tag-minor-release: .release tag
+
+tag-major-release: VERSION := $(shell . $(RELEASE_SUPPORT); nextMajorLevel)
+tag-major-release: .release tag
+
+patch-bump: tag-patch-release ### Increments the patch release level, build and push to registry.
+	@echo "Patch release: $(VERSION)"
+
+minor-bump: tag-minor-release ### Increments the minor release level, build and push to registry.
+	@echo "Minor release: $(VERSION)"
+
+major-bump: tag-major-release ### Increments the major release level, build and push to registry.
+	@echo "Major release: $(VERSION)"
+
+tag: TAG=$(shell . $(RELEASE_SUPPORT); getTag $(VERSION))
+tag: check-status
+	@. $(RELEASE_SUPPORT) ; ! tagExists $(TAG) || (echo "ERROR: tag $(TAG) for version $(VERSION) already tagged in git" >&2 && exit 1) ;
+	@. $(RELEASE_SUPPORT) ; setRelease $(VERSION)
+	git add -u
+	git commit -m "chore: Version bump → $(VERSION)" ;
+	git tag $(TAG) ;
+	# @ if [ -n "$(shell git remote -v)" ] ; then git push --tags ; else echo 'no remote to push tags to' ; fi
+
+check-status: ## Checks whether there are outstanding changes.
+	@. $(RELEASE_SUPPORT) ; ! hasChanges || (echo "ERROR: there are still outstanding changes" >&2 && exit 1) ;
+
+check-release: .release ## Checks whether the current directory matches the tagged release in git.
+	@. $(RELEASE_SUPPORT) ; tagExists $(TAG) || (echo "ERROR: version not yet tagged in git. make [minor,major,patch]-bump." >&2 && exit 1) ;
+	@. $(RELEASE_SUPPORT) ; ! differsFromRelease $(TAG) || (echo "ERROR: current directory differs from tagged $(TAG). make [minor,major,patch]-release." ; exit 1)
+
+
+##@ Misc.
+help: ## Display this help
+	@echo -e "Usage:\n  make \033[36m<target>\033[0m"
+	@awk 'BEGIN {FS = ":.*##"}; \
+		/^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } \
+		/^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
 sample: kustomize ## Install sample manifests
 	$(KUSTOMIZE) build manifests/base | kubectl apply -f -
