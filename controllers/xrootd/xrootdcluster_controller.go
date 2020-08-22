@@ -22,6 +22,7 @@ USA
 package controllers
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/go-logr/logr"
@@ -63,6 +64,7 @@ var _ reconciler.StatusReconciler = &XrootdClusterReconciler{}
 // +kubebuilder:rbac:groups="",resources=pods;services;services/finalizers;endpoints;persistentvolumeclaims;events;configmaps;secrets,verbs=create;delete;get;list;patch;update;watch
 // +kubebuilder:rbac:groups=apps,resources=deployments;daemonsets;replicasets;statefulsets,verbs=create;delete;get;list;patch;update;watch
 
+// Reconcile executes the reconciliation logic on trigger of watched events
 func (r *XrootdClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	// ctx := context.Background()
 	logger := r.Log.WithValues("xrootdcluster", req.NamespacedName)
@@ -70,7 +72,7 @@ func (r *XrootdClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 
 	// Fetch the Xrootd instance
 	instance := &xrootdv1alpha1.XrootdCluster{}
-	// Call reconcile logic
+	// Call common reconcile logic
 	result, err := reconciler.Reconcile(r, req, instance, logger)
 	if err == nil {
 		logger.Info("Reconciled successfully!")
@@ -79,7 +81,8 @@ func (r *XrootdClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 }
 
 // IsValid determines if a Xrootd instance is valid and initializes empty fields.
-func (r *XrootdClusterReconciler) IsValid(instance controllerutil.Object) (bool, error) {
+func (r *XrootdClusterReconciler) IsValid(instance controllerutil.Object) (result bool, err error) {
+	result = true
 	xrootd := instance.(*xrootdv1alpha1.XrootdCluster)
 	if xrootd.Spec.Redirector.Replicas == 0 {
 		xrootd.Spec.Redirector.Replicas = 1
@@ -91,16 +94,33 @@ func (r *XrootdClusterReconciler) IsValid(instance controllerutil.Object) (bool,
 		xrootd.Spec.Worker.Storage.Class = "standard"
 	}
 	if len(xrootd.Spec.Version) == 0 {
-		return false, fmt.Errorf("Provide xrootd version in instance")
-	}
-	if versionInfo, err := utils.GetXrootdVersionInfo(r.GetClient(), instance.GetNamespace(), xrootd.Spec.Version); err != nil {
-		return false, errors.Wrapf(err, "Unable to find requested version - %s", xrootd.Spec.Version)
+		result, err = false, fmt.Errorf("Provide xrootd version in instance")
+	} else if versionInfo, tErr := utils.GetXrootdVersionInfo(r.GetClient(), instance.GetNamespace(), xrootd.Spec.Version); tErr != nil {
+		result, err = false, errors.Wrapf(tErr, "Unable to find requested version - %s", xrootd.Spec.Version)
 	} else if image := versionInfo.Spec.Image; len(image) == 0 {
-		return false, fmt.Errorf("Invalid image, '%s', provided for the given version, '%s'", image, xrootd.Spec.Version)
+		result, err = false, fmt.Errorf("Invalid image, '%s', provided for the given version, '%s'", image, xrootd.Spec.Version)
 	} else {
 		xrootd.SetVersionInfo(*versionInfo)
 	}
-	return true, nil
+
+	if result {
+		xrootd.Status.SetSpecValidCondition(true, "Spec is valid", "'IsValid' check passed")
+	} else {
+		// if invalid spec, update invalid cluster state
+		xrootd.Status.SetSpecValidCondition(false, err.Error(), "'IsValid' check failed")
+	}
+	return
+}
+
+// ManageError handles any error during reconciliation and updates CR status phase and condition
+func (r *XrootdClusterReconciler) ManageError(instance controllerutil.Object, err error, log logr.Logger) (reconcile.Result, error) {
+	xrootd := instance.(*xrootdv1alpha1.XrootdCluster)
+	xrootd.Status.SetPhase(xrootdv1alpha1.ClusterPhaseFailed)
+	if tErr := r.GetClient().Status().Update(context.Background(), xrootd); tErr != nil {
+		r.Log.Error(tErr, "failed updating xrootd instance status")
+		err = errors.Wrap(err, tErr.Error())
+	}
+	return r.BaseReconciler.ManageError(instance, err, log)
 }
 
 // SetupWithManager assigns controller manager and watches
