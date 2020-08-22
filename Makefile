@@ -73,8 +73,8 @@ undeploy: manifests kustomize ## Uninstalls the controller and CRDs in the confi
 
 ##@ Tests
 test: generate fmt vet manifests ## Run tests
-	mkdir -p ${ENVTEST_ASSETS_DIR}
-	test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/master/hack/setup-envtest.sh
+	@mkdir -p ${ENVTEST_ASSETS_DIR}
+	@test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/master/hack/setup-envtest.sh
 	@{ \
 		set -e; \
 		source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; \

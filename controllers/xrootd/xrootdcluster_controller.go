@@ -103,6 +103,7 @@ func (r *XrootdClusterReconciler) IsValid(instance controllerutil.Object) (bool,
 	return true, nil
 }
 
+// SetupWithManager assigns controller manager and watches
 func (r *XrootdClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	r.AddXrootdLogger()
 	if err := r.StartWatching(); err != nil {
