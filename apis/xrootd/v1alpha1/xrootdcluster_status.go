@@ -155,7 +155,7 @@ func (cs *XrootdClusterStatus) SetSpecValidCondition(isValid bool, reason string
 
 // ClearCondition clears the given condition type
 func (cs *XrootdClusterStatus) ClearCondition(t ClusterConditionType) {
-	pos, _ := getClusterCondition(cs, t)
+	pos, _ := cs.GetClusterCondition(t)
 	if pos == -1 {
 		return
 	}
@@ -163,7 +163,7 @@ func (cs *XrootdClusterStatus) ClearCondition(t ClusterConditionType) {
 }
 
 func (cs *XrootdClusterStatus) setClusterCondition(c ClusterCondition) {
-	pos, cp := getClusterCondition(cs, c.Type)
+	pos, cp := cs.GetClusterCondition(c.Type)
 	if cp != nil {
 		cs.Conditions[pos] = c
 	} else {
@@ -171,8 +171,9 @@ func (cs *XrootdClusterStatus) setClusterCondition(c ClusterCondition) {
 	}
 }
 
-func getClusterCondition(status *XrootdClusterStatus, t ClusterConditionType) (int, *ClusterCondition) {
-	for i, c := range status.Conditions {
+// GetClusterCondition returns position and condition pointer from the .Conditions array
+func (cs *XrootdClusterStatus) GetClusterCondition(t ClusterConditionType) (int, *ClusterCondition) {
+	for i, c := range cs.Conditions {
 		if t == c.Type {
 			return i, &c
 		}
