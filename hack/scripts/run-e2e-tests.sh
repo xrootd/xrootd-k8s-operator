@@ -55,7 +55,10 @@ set -- $(ls $ROOT_DIR/tests/e2e/test-*.sh)
 kubectl cp "$ROOT_DIR/tests/e2e/" "$NAMESPACE/$SHELL_POD":"/tmp"
 
 # Wait for cluster to run fine!
-sleep 30s
+while ! kubectl wait --for=condition=Available xrootdclusters.xrootd.xrootd.org "$INSTANCE"; do
+  echo "Waiting for xrootd cluster to be available..."
+  kubectl describe xrootdclusters.xrootd.xrootd.org "$INSTANCE"
+done
 
 for script in "$@"; do
   if ! kubectl exec "$SHELL_POD" -it -- "/tmp/e2e/$(basename $script)" -i "$INSTANCE" $(if $VERBOSE; then echo -n "-v"; fi); then
