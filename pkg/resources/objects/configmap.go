@@ -1,6 +1,7 @@
 package objects
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -60,11 +61,15 @@ func GenerateContainerConfigMap(
 			XrootdSharedPath:         constant.XrootdSharedAdminPath,
 		}
 	}
-	rootDir := os.Getenv("XROOTD_OPERATOR_CONFIGMAPS_PATH")
+	rootDir := os.Getenv(constant.EnvXrootdOpConfigmapPath)
 	if len(rootDir) == 0 {
 		rootDir = "configmaps"
 	}
-	configDir := filepath.Join(rootDir, string(config), subpath)
+	rootPath, err := filepath.Abs(rootDir)
+	if err != nil {
+		panic(fmt.Errorf("error in getting absolute path, %v: %v", rootDir, err))
+	}
+	configDir := filepath.Join(rootPath, string(config), subpath)
 	data := scanDir(configDir, tmplData)
 	return v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{

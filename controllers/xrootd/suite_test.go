@@ -23,6 +23,7 @@ package xrootdcontroller
 
 import (
 	"math/rand"
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -41,6 +42,7 @@ import (
 	catalogv1alpha1 "github.com/xrootd/xrootd-k8s-operator/apis/catalog/v1alpha1"
 	xrootdv1alpha1 "github.com/xrootd/xrootd-k8s-operator/apis/xrootd/v1alpha1"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/controller/reconciler"
+	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/constant"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -68,6 +70,7 @@ var _ = BeforeSuite(func(done Done) {
 		ErrorIfCRDPathMissing: true,
 		CRDDirectoryPaths:     []string{filepath.Join("..", "..", "config", "crd", "bases")},
 	}
+	os.Setenv(constant.EnvXrootdOpConfigmapPath, filepath.Join("..", "..", "configmaps"))
 
 	var err error
 	cfg, err = testEnv.Start()

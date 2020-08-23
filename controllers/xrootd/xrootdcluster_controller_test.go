@@ -35,6 +35,24 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
+func applyCrsAndFetchCrAfterDelay(
+	versionCr *catalogv1alpha1.XrootdVersion,
+	clusterCr *xrootdv1alpha1.XrootdCluster,
+	clusterKey types.NamespacedName,
+	delay time.Duration,
+) *xrootdv1alpha1.XrootdCluster {
+	By("creating xrootdversion successfully")
+	Expect(k8sClient.Create(context.TODO(), versionCr)).Should(Succeed())
+	By("creating xrootdcluster successfully")
+	Expect(k8sClient.Create(context.TODO(), clusterCr)).Should(Succeed())
+	time.Sleep(delay)
+
+	By("fetching updated xrootdcluster CR")
+	fetched := &xrootdv1alpha1.XrootdCluster{}
+	Expect(k8sClient.Get(context.TODO(), clusterKey, fetched)).Should(Succeed())
+	return fetched
+}
+
 var _ = Describe("XrootdCluster Controller", func() {
 	const waitCr = time.Second * 5
 
@@ -61,6 +79,11 @@ var _ = Describe("XrootdCluster Controller", func() {
 		}
 		clusterSpec = xrootdv1alpha1.XrootdClusterSpec{
 			Version: versionKey.Name,
+			Worker: xrootdv1alpha1.XrootdWorkerSpec{
+				Storage: xrootdv1alpha1.XrootdStorageSpec{
+					Capacity: "1Gi",
+				},
+			},
 		}
 	})
 
@@ -118,16 +141,7 @@ var _ = Describe("XrootdCluster Controller", func() {
 			})
 
 			It("should pass creation but add failed status", func() {
-				By("creating xrootdversion successfully")
-				Expect(k8sClient.Create(context.TODO(), versionToCreate)).Should(Succeed())
-				By("creating xrootdcluster successfully")
-				Expect(k8sClient.Create(context.TODO(), clusterToCreate)).Should(Succeed())
-				time.Sleep(waitCr)
-
-				By("fetching updated xrootdcluster CR")
-				fetched := &xrootdv1alpha1.XrootdCluster{}
-				Expect(k8sClient.Get(context.TODO(), clusterKey, fetched)).Should(Succeed())
-
+				fetched := applyCrsAndFetchCrAfterDelay(versionToCreate, clusterToCreate, clusterKey, waitCr)
 				By("checking 'failed' phase")
 				Expect(fetched.Status.Phase).Should(Equal(xrootdv1alpha1.ClusterPhaseFailed))
 
@@ -143,6 +157,45 @@ var _ = Describe("XrootdCluster Controller", func() {
 				conditionAssertion.Should(MatchFields(IgnoreExtras, Fields{
 					"Status": Equal(corev1.ConditionFalse),
 				}))
+			})
+		})
+		Context("Spec with empty worker storage capacity", func() {
+			BeforeEach(func() {
+				clusterSpec = xrootdv1alpha1.XrootdClusterSpec{
+					Version: versionKey.Name,
+				}
+			})
+
+			It("should pass creation but add failed status", func() {
+				fetched := applyCrsAndFetchCrAfterDelay(versionToCreate, clusterToCreate, clusterKey, waitCr)
+				By("checking 'failed' phase")
+				Expect(fetched.Status.Phase).Should(Equal(xrootdv1alpha1.ClusterPhaseFailed))
+
+				By("checking false 'valid' condition")
+				conditionAssertion := Expect(func() xrootdv1alpha1.ClusterCondition {
+					_, res := fetched.Status.GetClusterCondition(xrootdv1alpha1.ClusterConditionValid)
+					if res == nil {
+						return xrootdv1alpha1.ClusterCondition{}
+					}
+					return *res
+				}())
+				conditionAssertion.ToNot(BeZero())
+				conditionAssertion.Should(MatchFields(IgnoreExtras, Fields{
+					"Status": Equal(corev1.ConditionFalse),
+				}))
+			})
+		})
+	})
+
+	Describe("XrootdCluster with valid data", func() {
+		Context("xrootd redirectors and workers are live", func() {
+			It("cluster is is in running phase", func() {
+				fetched := applyCrsAndFetchCrAfterDelay(versionToCreate, clusterToCreate, clusterKey, waitCr)
+				By("checking 'creating' phase")
+				Expect(fetched.Status.Phase).Should(Equal(xrootdv1alpha1.ClusterPhaseCreating))
+				time.Sleep(waitCr * 12)
+				By("checking 'running' phase")
+				Expect(fetched.Status.Phase).Should(Equal(xrootdv1alpha1.ClusterPhaseRunning))
 			})
 		})
 	})
