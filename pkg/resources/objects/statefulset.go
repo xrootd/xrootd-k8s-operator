@@ -9,6 +9,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// GenerateXrootdStatefulSet generated xrootd statefulset
 func GenerateXrootdStatefulSet(
 	xrootd *v1alpha1.XrootdCluster, objectName types.ObjectName,
 	compLabels types.Labels, componentName types.ComponentName,

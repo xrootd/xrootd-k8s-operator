@@ -12,10 +12,12 @@ import (
 
 var log = logf.Log.WithName("resource")
 
+// Resource is a wrapper over k8s Object
 type Resource struct {
 	Object controllerutil.Object
 }
 
+// Resources represents a list of Resource
 type Resources []Resource
 
 // InstanceResourceSet contains Resources for a given Xrootd instance
@@ -24,6 +26,7 @@ type InstanceResourceSet struct {
 	xrootd    *v1alpha1.XrootdCluster
 }
 
+// NewInstanceResourceSet creates a new InstanceResourceSet for the given xrootd instance
 func NewInstanceResourceSet(xrootd *v1alpha1.XrootdCluster) *InstanceResourceSet {
 	return &InstanceResourceSet{
 		resources: Resources(make([]Resource, 0)),
@@ -31,6 +34,7 @@ func NewInstanceResourceSet(xrootd *v1alpha1.XrootdCluster) *InstanceResourceSet
 	}
 }
 
+// GetResources returns the resources managed by this ResourceSet
 func (irs InstanceResourceSet) GetResources() Resources {
 	return irs.resources
 }
@@ -57,18 +61,12 @@ func (irs InstanceResourceSet) GetResources() Resources {
 // 	return result.([]lockedresource.LockedResource), err
 // }
 
+// ToSlice returns the slice representation of Resources
 func (res Resources) ToSlice() []Resource {
 	return []Resource(res)
 }
 
-func (res Resources) GetObjects() []controllerutil.Object {
-	objects := make([]controllerutil.Object, 0)
-	for _, item := range res {
-		objects = append(objects, item.Object)
-	}
-	return objects
-}
-
+// GetK8SResources returns the slice representation of managed k8s resources
 func (res Resources) GetK8SResources() []resource.KubernetesResource {
 	objects := make([]resource.KubernetesResource, len(res))
 	for index, item := range res {
@@ -88,6 +86,9 @@ func (irs *InstanceResourceSet) addResource(newResources ...Resource) {
 func (res *Resource) fillGroupVersionKind() error {
 	scheme := runtime.NewScheme()
 	err := v1.AddToScheme(scheme)
+	if err != nil {
+		return err
+	}
 	err = appsv1.AddToScheme(scheme)
 	if err != nil {
 		return err

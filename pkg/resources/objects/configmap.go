@@ -44,6 +44,7 @@ func scanDir(root string, tmplData interface{}) map[string]string {
 	return files
 }
 
+// GenerateContainerConfigMap generated configmap for given xrootd container
 func GenerateContainerConfigMap(
 	xrootd *v1alpha1.XrootdCluster, objectName types.ObjectName,
 	compLabels types.Labels, config types.ConfigName,

@@ -4,6 +4,8 @@ import (
 	"io/ioutil"
 	"os"
 	"testing"
+
+	"github.com/pkg/errors"
 )
 
 func createTempTextFile(contents string) (f *os.File, err error) {
@@ -12,6 +14,12 @@ func createTempTextFile(contents string) (f *os.File, err error) {
 		_, err = f.WriteString(contents)
 	}
 	return
+}
+
+func cleanupTempTextFile(file *os.File, t *testing.T) {
+	if err := os.Remove(file.Name()); err != nil {
+		t.Error(errors.WithMessage(err, "Deleting temporary file failed!"))
+	}
 }
 
 func TestApplyTemplateWithNoData(t *testing.T) {
@@ -23,7 +31,7 @@ func TestApplyTemplateWithNoData(t *testing.T) {
 		t.Errorf("error in writing contents: %v", err)
 		return
 	}
-	defer os.Remove(file.Name())
+	defer cleanupTempTextFile(file, t)
 	result, err := ApplyTemplate(file.Name(), nil)
 	if err != nil {
 		t.Errorf("error in applying template: %v", err)
@@ -46,7 +54,7 @@ func TestApplyTemplateWithData(t *testing.T) {
 		t.Errorf("error in writing contents: %v", err)
 		return
 	}
-	defer os.Remove(file.Name())
+	defer cleanupTempTextFile(file, t)
 	result, err := ApplyTemplate(file.Name(), data{Name: "shivansh"})
 	if err != nil {
 		t.Errorf("error in applying template: %v", err)
@@ -69,7 +77,7 @@ func TestApplyTemplateWithTemplateFunction(t *testing.T) {
 		t.Errorf("error in writing contents: %v", err)
 		return
 	}
-	defer os.Remove(file.Name())
+	defer cleanupTempTextFile(file, t)
 	result, err := ApplyTemplate(file.Name(), data{Count: 2})
 	if err != nil {
 		t.Errorf("error in applying template: %v", err)

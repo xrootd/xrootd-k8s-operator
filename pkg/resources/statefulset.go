@@ -6,6 +6,7 @@ import (
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/constant"
 )
 
+// AddXrootdRedirectorStatefulSetResource adds statefulset for redirector pods
 func (irs *InstanceResourceSet) AddXrootdRedirectorStatefulSetResource() {
 	xrootd := irs.xrootd
 	component := constant.XrootdRedirector
@@ -15,6 +16,7 @@ func (irs *InstanceResourceSet) AddXrootdRedirectorStatefulSetResource() {
 	irs.addResource(Resource{Object: &statefulset})
 }
 
+// AddXrootdWorkerStatefulSetResource adds statefulset for worker pods
 func (irs *InstanceResourceSet) AddXrootdWorkerStatefulSetResource() {
 	xrootd := irs.xrootd
 	component := constant.XrootdWorker

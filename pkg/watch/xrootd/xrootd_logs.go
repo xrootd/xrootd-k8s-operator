@@ -23,6 +23,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
+// LogsWatcher confirms xrootd pods are connected by grepping their cmsd container logs
 type LogsWatcher struct {
 	Component  types.ComponentName
 	reconciler reconciler.Reconciler
@@ -34,10 +35,11 @@ var log = logf.Log.WithName("XrootdLogsWatcher")
 
 const waitMemberReadyDelay = 5 * time.Second
 
+// Watch implements watch.Watcher
 func (lw LogsWatcher) Watch(requests <-chan reconcile.Request) error {
 	var reqLogger logr.Logger
 	for request := range requests {
-		reqLogger = log.WithValues("request", request, "component", lw.Component)
+		reqLogger = log.WithName("Watch").WithValues("request", request, "component", lw.Component)
 
 		instance := &xrootdv1alpha1.XrootdCluster{}
 		if err := lw.reconciler.GetResourceInstance(request, instance); err != nil {
@@ -58,7 +60,7 @@ func (lw LogsWatcher) Watch(requests <-chan reconcile.Request) error {
 }
 
 func (lw LogsWatcher) monitorXrootdStatus(request reconcile.Request) error {
-	reqLogger := log.WithValues("request", request, "component", lw.Component)
+	reqLogger := log.WithName("monitorXrootdStatus").WithValues("request", request, "component", lw.Component)
 	reqLogger.Info("Started monitoring xrootd cluster...")
 
 	clientset, err := kubernetes.NewForConfig(lw.reconciler.GetConfig())
@@ -85,14 +87,14 @@ func (lw LogsWatcher) monitorXrootdStatus(request reconcile.Request) error {
 			break
 		}
 		if err := lw.updateInstanceStatus(instance, countPods, lw.obtainLogsOfAllPods(request, unreadyPods, clientset)); err != nil {
-			reqLogger.Error(err, "failed updating xrootd status")
+			reqLogger.WithName("memberReady").Error(err, "failed updating xrootd status")
 		}
 	}
 	// update the cluster phase to running
 	instance.Status.SetPhase(xrootdv1alpha1.ClusterPhaseRunning)
 	instance.Status.SetReadyCondition()
 	if err := lw.reconciler.GetClient().Status().Update(context.TODO(), instance); err != nil {
-		reqLogger.Error(err, "failed updating xrootd status")
+		reqLogger.WithName("clusterStatus").Error(err, "failed updating xrootd status")
 	}
 	return nil
 }
@@ -216,11 +218,11 @@ func (lw LogsWatcher) processXrootdPodLogs(pod *corev1.Pod, opt *corev1.PodLogOp
 			return
 		}
 	}
-	logger.V(1).Info("Read to buffer", "read", read, "buffer", string(buffer))
 	result = read > 0
 	return
 }
 
+// NewLogsWatcher returns a grouped request watcher for the above Logs Watcher
 func NewLogsWatcher(component types.ComponentName, reconciler reconciler.Reconciler) watch.Watcher {
 	return watch.NewGroupedRequestWatcher(
 		LogsWatcher{

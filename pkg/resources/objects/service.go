@@ -8,6 +8,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// GenerateXrootdService generates xrootd service
 func GenerateXrootdService(
 	xrootd *v1alpha1.XrootdCluster, objectName types.ObjectName,
 	compLabels types.Labels, componentName types.ComponentName,

@@ -70,7 +70,7 @@ var _ = BeforeSuite(func(done Done) {
 		ErrorIfCRDPathMissing: true,
 		CRDDirectoryPaths:     []string{filepath.Join("..", "..", "config", "crd", "bases")},
 	}
-	os.Setenv(constant.EnvXrootdOpConfigmapPath, filepath.Join("..", "..", "configmaps"))
+	Expect(os.Setenv(constant.EnvXrootdOpConfigmapPath, filepath.Join("..", "..", "configmaps"))).ToNot(HaveOccurred())
 
 	var err error
 	cfg, err = testEnv.Start()

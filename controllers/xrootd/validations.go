@@ -79,11 +79,11 @@ func (r *XrootdClusterReconciler) applySpecDefaults(xrootd *xrootdv1alpha1.Xroot
 func (r *XrootdClusterReconciler) checkVersionIsValid(xrootd *xrootdv1alpha1.XrootdCluster) (result bool, err error) {
 	result = true
 	if len(xrootd.Spec.Version) == 0 {
-		result, err = false, fmt.Errorf("Provide xrootd version in instance")
+		result, err = false, fmt.Errorf("provide xrootd version in instance")
 	} else if versionInfo, tErr := utils.GetXrootdVersionInfo(r.GetClient(), xrootd.GetNamespace(), xrootd.Spec.Version); tErr != nil {
-		result, err = false, errors.Wrapf(tErr, "Unable to find requested version - %s", xrootd.Spec.Version)
+		result, err = false, errors.Wrapf(tErr, "unable to find requested version - %s", xrootd.Spec.Version)
 	} else if image := versionInfo.Spec.Image; len(image) == 0 {
-		result, err = false, fmt.Errorf("Invalid image, '%s', provided for the given version, '%s'", image, xrootd.Spec.Version)
+		result, err = false, fmt.Errorf("invalid image, '%s', provided for the given version, '%s'", image, xrootd.Spec.Version)
 	} else {
 		xrootd.SetVersionInfo(*versionInfo)
 	}

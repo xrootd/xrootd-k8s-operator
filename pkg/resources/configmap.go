@@ -6,6 +6,7 @@ import (
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/constant"
 )
 
+// AddXrootdConfigMapResource adds required configmaps for xrootd/cmsd containers
 func (irs *InstanceResourceSet) AddXrootdConfigMapResource() {
 	xrootd := irs.xrootd
 	objectName := utils.GetObjectName(constant.CfgXrootd, xrootd.Name)

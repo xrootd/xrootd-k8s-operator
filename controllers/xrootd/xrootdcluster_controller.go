@@ -88,6 +88,10 @@ func (r *XrootdClusterReconciler) ManageError(instance controllerutil.Object, er
 
 	// set cluster to failed status
 	xrootd.Status.SetPhase(xrootdv1alpha1.ClusterPhaseFailed)
+
+	// clear available condition for cluster if set
+	xrootd.Status.ClearCondition(xrootdv1alpha1.ClusterConditionAvailable)
+
 	if tErr := r.GetClient().Status().Update(context.Background(), xrootd); tErr != nil {
 		r.Log.Error(tErr, "failed updating xrootd instance status")
 		err = errors.Wrap(err, tErr.Error())
