@@ -112,15 +112,16 @@ func Reconcile(r Reconciler, request reconcile.Request, instance resource, log l
 	if err := r.GetResourceInstance(request, instance); err != nil {
 		return r.ManageError(instance, err, log)
 	}
-	if ok, err := r.IsValid(instance); !ok {
-		// If CR isn't valid, update the status with error and return
-		return r.ManageError(instance, err, log)
-	}
 
 	if IsBeingDeleted(instance) {
 		log.Info("Deleting instance...", "instance", instance)
 		// TODO: Write Cleanup Logic
 		return reconcile.Result{}, nil
+	}
+
+	if ok, err := r.IsValid(instance); !ok {
+		// If CR isn't valid, update the status with error and return
+		return r.ManageError(instance, err, log)
 	}
 
 	if syncer, ok := r.(SyncReconciler); ok {

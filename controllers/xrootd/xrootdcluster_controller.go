@@ -115,6 +115,12 @@ func (r *XrootdClusterReconciler) IsValid(instance controllerutil.Object) (resul
 // ManageError handles any error during reconciliation and updates CR status phase and condition
 func (r *XrootdClusterReconciler) ManageError(instance controllerutil.Object, err error, log logr.Logger) (reconcile.Result, error) {
 	xrootd := instance.(*xrootdv1alpha1.XrootdCluster)
+
+	// set member status to empty array (otherwise status update fails)
+	xrootd.Status.RedirectorStatus = xrootdv1alpha1.NewMemberStatus([]string{}, []string{})
+	xrootd.Status.WorkerStatus = xrootdv1alpha1.NewMemberStatus([]string{}, []string{})
+
+	// set cluster to failed status
 	xrootd.Status.SetPhase(xrootdv1alpha1.ClusterPhaseFailed)
 	if tErr := r.GetClient().Status().Update(context.Background(), xrootd); tErr != nil {
 		r.Log.Error(tErr, "failed updating xrootd instance status")
