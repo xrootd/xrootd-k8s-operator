@@ -59,8 +59,10 @@ var _ reconciler.StatusReconciler = &XrootdClusterReconciler{}
 // +kubebuilder:rbac:groups=xrootd.xrootd.org,resources=xrootdclusters,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=xrootd.xrootd.org,resources=xrootdclusters/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=catalog.xrootd.org,resources=xrootdversions,verbs=get;list;watch
-// +kubebuilder:rbac:groups="",resources=pods;services;services/finalizers;endpoints;persistentvolumeclaims;events;configmaps;secrets,verbs=create;delete;get;list;patch;update;watch
+// +kubebuilder:rbac:groups="",resources=pods;pods/status;services;services/finalizers;endpoints;persistentvolumeclaims;events;configmaps;secrets,verbs=create;delete;get;list;patch;update;watch
+// +kubebuilder:rbac:groups="",resources=pods/log,verbs=get;list;watch
 // +kubebuilder:rbac:groups=apps,resources=deployments;daemonsets;replicasets;statefulsets,verbs=create;delete;get;list;patch;update;watch
+// +kubebuilder:rbac:groups=apps,resources=deployments/finalizers,verbs=update
 
 // Reconcile executes the reconciliation logic on trigger of watched events
 func (r *XrootdClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
