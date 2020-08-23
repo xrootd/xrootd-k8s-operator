@@ -64,6 +64,12 @@ var _ = Describe("XrootdCluster Controller", func() {
 		}
 	})
 
+	AfterEach(func() {
+		// Add any teardown steps that needs to be executed after each test
+		_ = k8sClient.Delete(context.Background(), clusterToCreate)
+		_ = k8sClient.Delete(context.Background(), versionToCreate)
+	})
+
 	JustBeforeEach(func() {
 		clusterToCreate = &xrootdv1alpha1.XrootdCluster{
 			ObjectMeta: metav1.ObjectMeta{
@@ -124,19 +130,19 @@ var _ = Describe("XrootdCluster Controller", func() {
 
 				By("checking 'failed' phase")
 				Expect(fetched.Status.Phase).Should(Equal(xrootdv1alpha1.ClusterPhaseFailed))
+
 				By("checking false 'valid' condition")
-				conditionAssertion := Expect(func() *xrootdv1alpha1.ClusterCondition {
+				conditionAssertion := Expect(func() xrootdv1alpha1.ClusterCondition {
 					_, res := fetched.Status.GetClusterCondition(xrootdv1alpha1.ClusterConditionValid)
-					return res
+					if res == nil {
+						return xrootdv1alpha1.ClusterCondition{}
+					}
+					return *res
 				}())
-				conditionAssertion.ToNot(BeNil())
-				idFun := func(element interface{}) string {
-					return string(element.(string)[0])
-				}
-				conditionAssertion.Should(MatchElements(idFun, IgnoreExtras, Elements{
+				conditionAssertion.ToNot(BeZero())
+				conditionAssertion.Should(MatchFields(IgnoreExtras, Fields{
 					"Status": Equal(corev1.ConditionFalse),
 				}))
-				// Fail(fmt.Sprintf("dummy; instance: %v", *fetched))
 			})
 		})
 	})
