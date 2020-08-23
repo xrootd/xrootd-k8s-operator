@@ -60,6 +60,9 @@ while ! kubectl wait --for=condition=Available xrootdclusters.xrootd.xrootd.org 
   kubectl describe xrootdclusters.xrootd.xrootd.org "$INSTANCE"
 done
 
+# Extra sleep so tests do not randomly fail
+sleep 2
+
 for script in "$@"; do
   if ! kubectl exec "$SHELL_POD" -it -- "/tmp/e2e/$(basename $script)" -i "$INSTANCE" $(if $VERBOSE; then echo -n "-v"; fi); then
     echo "Xrootd Worker - xrootd logs"
