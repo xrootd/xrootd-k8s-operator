@@ -23,7 +23,6 @@ package xrootdcontroller
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
@@ -35,7 +34,6 @@ import (
 
 	xrootdv1alpha1 "github.com/xrootd/xrootd-k8s-operator/apis/xrootd/v1alpha1"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/controller/reconciler"
-	"github.com/xrootd/xrootd-k8s-operator/pkg/utils"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/constant"
 )
 
@@ -78,38 +76,6 @@ func (r *XrootdClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 		logger.Info("Reconciled successfully!")
 	}
 	return result, err
-}
-
-// IsValid determines if a Xrootd instance is valid and initializes empty fields.
-func (r *XrootdClusterReconciler) IsValid(instance controllerutil.Object) (result bool, err error) {
-	result = true
-	xrootd := instance.(*xrootdv1alpha1.XrootdCluster)
-	if xrootd.Spec.Redirector.Replicas == 0 {
-		xrootd.Spec.Redirector.Replicas = 1
-	}
-	if xrootd.Spec.Worker.Replicas == 0 {
-		xrootd.Spec.Worker.Replicas = 1
-	}
-	if len(xrootd.Spec.Worker.Storage.Class) == 0 {
-		xrootd.Spec.Worker.Storage.Class = "standard"
-	}
-	if len(xrootd.Spec.Version) == 0 {
-		result, err = false, fmt.Errorf("Provide xrootd version in instance")
-	} else if versionInfo, tErr := utils.GetXrootdVersionInfo(r.GetClient(), instance.GetNamespace(), xrootd.Spec.Version); tErr != nil {
-		result, err = false, errors.Wrapf(tErr, "Unable to find requested version - %s", xrootd.Spec.Version)
-	} else if image := versionInfo.Spec.Image; len(image) == 0 {
-		result, err = false, fmt.Errorf("Invalid image, '%s', provided for the given version, '%s'", image, xrootd.Spec.Version)
-	} else {
-		xrootd.SetVersionInfo(*versionInfo)
-	}
-
-	if result {
-		xrootd.Status.SetSpecValidCondition(true, "Spec is valid", "'IsValid' check passed")
-	} else {
-		// if invalid spec, update invalid cluster state
-		xrootd.Status.SetSpecValidCondition(false, err.Error(), "'IsValid' check failed")
-	}
-	return
 }
 
 // ManageError handles any error during reconciliation and updates CR status phase and condition
