@@ -57,7 +57,8 @@ kubectl cp "$ROOT_DIR/tests/e2e/" "$NAMESPACE/$SHELL_POD":"/tmp"
 # Wait for cluster to run fine!
 while ! kubectl wait --for=condition=Available xrootdclusters.xrootd.xrootd.org "$INSTANCE"; do
   echo "Waiting for xrootd cluster to be available..."
-  kubectl describe xrootdclusters.xrootd.xrootd.org "$INSTANCE"
+  # kubectl describe xrootdclusters.xrootd.xrootd.org "$INSTANCE"
+  kubectl logs -c manager deployment/xrootd-operator-controller-manager -n xrootd-operator-system
 done
 
 for script in "$@"; do
