@@ -81,7 +81,7 @@ test: generate fmt vet manifests ## Run tests
 		fetch_envtest_tools $(ENVTEST_ASSETS_DIR); \
 		setup_envtest_env $(ENVTEST_ASSETS_DIR); \
 		echo "....... Running tests ......."; \
-		go test ./... -coverprofile cover.out; \
+		go test ./... -coverprofile cover.out; # -ginkgo.randomizeAllSpecs -ginkgo.trace -ginkgo.progress; \
 	}
 
 test-e2e: ## Run e2e tests
