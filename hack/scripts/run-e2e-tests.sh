@@ -42,8 +42,9 @@ kubectl delete pod "$SHELL_POD" -n "$NAMESPACE" || echo "No existing shell pod f
 kubectl run "$SHELL_POD" --image="qserv/xrootd:latest" --image-pull-policy="IfNotPresent" --restart=Never sleep 3600 -n "$NAMESPACE"
 kubectl label pod "$SHELL_POD" "instance=$INSTANCE" "tier=client" -n "$NAMESPACE"
 
+echo "Waiting for xrootd pods to be ready..."
 while ! kubectl wait --for=condition=Ready pods -l "instance=$INSTANCE" -n "$NAMESPACE"; do
-  echo "Waiting for xrootd pods to be ready..."
+  echo "Retry..."
   kubectl describe pod -l "instance=$INSTANCE" -n "$NAMESPACE"
 done
 
@@ -54,14 +55,15 @@ set -- $(ls $ROOT_DIR/tests/e2e/test-*.sh)
 # Copy all test files
 kubectl cp "$ROOT_DIR/tests/e2e/" "$NAMESPACE/$SHELL_POD":"/tmp"
 
+echo "Waiting for xrootd cluster to be available..."
 # Wait for cluster to run fine!
 while ! kubectl wait --for=condition=Available xrootdclusters.xrootd.xrootd.org "$INSTANCE"; do
-  echo "Waiting for xrootd cluster to be available..."
+  echo "Retry..."
   kubectl describe xrootdclusters.xrootd.xrootd.org "$INSTANCE"
 done
 
 # Extra sleep so tests do not randomly fail
-sleep 6
+sleep 15
 
 for script in "$@"; do
   if ! kubectl exec "$SHELL_POD" -it -- "/tmp/e2e/$(basename $script)" -i "$INSTANCE" $(if $VERBOSE; then echo -n "-v"; fi); then

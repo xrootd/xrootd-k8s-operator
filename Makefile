@@ -86,7 +86,11 @@ test: generate fmt vet manifests ## Run tests
 
 test-e2e: ## Run e2e tests
 	@echo "....... Running e2e tests ......."
-	@$(SCRIPTS_DIR)/run-e2e-tests.sh $(VERBOSE_SHORT_ARG)
+	@{ \
+		set -e -o pipefail; \
+		$(SCRIPTS_DIR)/run-e2e-tests.sh $(VERBOSE_SHORT_ARG) | \
+			while IFS= read -r line; do printf '%s %s\n' "$$(date -u +'%T')" "$$line"; done \
+	}
 
 
 ##@ Code
