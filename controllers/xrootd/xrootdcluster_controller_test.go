@@ -30,6 +30,7 @@ import (
 	. "github.com/onsi/gomega/gstruct"
 	catalogv1alpha1 "github.com/xrootd/xrootd-k8s-operator/apis/catalog/v1alpha1"
 	xrootdv1alpha1 "github.com/xrootd/xrootd-k8s-operator/apis/xrootd/v1alpha1"
+	"github.com/xrootd/xrootd-k8s-operator/tests/integration/framework"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -42,14 +43,14 @@ func applyCrsAndFetchCrAfterDelay(
 	delay time.Duration,
 ) *xrootdv1alpha1.XrootdCluster {
 	By("creating xrootdversion successfully")
-	Expect(k8sClient.Create(context.TODO(), versionCr)).Should(Succeed())
+	Expect(testFramework.Client.Create(context.TODO(), versionCr)).Should(Succeed())
 	By("creating xrootdcluster successfully")
-	Expect(k8sClient.Create(context.TODO(), clusterCr)).Should(Succeed())
+	Expect(testFramework.Client.Create(context.TODO(), clusterCr)).Should(Succeed())
 	time.Sleep(delay)
 
 	By("fetching updated xrootdcluster CR")
 	fetched := &xrootdv1alpha1.XrootdCluster{}
-	Expect(k8sClient.Get(context.TODO(), clusterKey, fetched)).Should(Succeed())
+	Expect(testFramework.Client.Get(context.TODO(), clusterKey, fetched)).Should(Succeed())
 	return fetched
 }
 
@@ -65,12 +66,14 @@ var _ = Describe("XrootdCluster Controller", func() {
 
 	clusterKey := types.NamespacedName{
 		Namespace: "default",
-		Name:      "test-xrootdcluster-" + randomStringWithCharset(10, charset),
+		Name:      "test-xrootdcluster-" + framework.RandomAlphabaticalString(10),
 	}
 	versionKey := types.NamespacedName{
 		Namespace: "default",
-		Name:      "test-xrootdversion-" + randomStringWithCharset(10, charset),
+		Name:      "test-xrootdversion-" + framework.RandomAlphabaticalString(10),
 	}
+
+	BeforeEach(testFramework.BeforeEach)
 
 	BeforeEach(func() {
 		versionSpec = catalogv1alpha1.XrootdVersionSpec{
@@ -89,8 +92,8 @@ var _ = Describe("XrootdCluster Controller", func() {
 
 	AfterEach(func() {
 		// Add any teardown steps that needs to be executed after each test
-		_ = k8sClient.Delete(context.Background(), clusterToCreate)
-		_ = k8sClient.Delete(context.Background(), versionToCreate)
+		_ = testFramework.Client.Delete(context.Background(), clusterToCreate)
+		_ = testFramework.Client.Delete(context.Background(), versionToCreate)
 	})
 
 	JustBeforeEach(func() {
@@ -118,7 +121,7 @@ var _ = Describe("XrootdCluster Controller", func() {
 				}
 			})
 			It("should fail creation", func() {
-				Expect(k8sClient.Create(context.TODO(), versionToCreate)).ShouldNot(Succeed())
+				Expect(testFramework.Client.Create(context.TODO(), versionToCreate)).ShouldNot(Succeed())
 			})
 		})
 	})
@@ -130,7 +133,7 @@ var _ = Describe("XrootdCluster Controller", func() {
 			})
 
 			It("should fail creation", func() {
-				Expect(k8sClient.Create(context.TODO(), clusterToCreate)).ShouldNot(Succeed())
+				Expect(testFramework.Client.Create(context.TODO(), clusterToCreate)).ShouldNot(Succeed())
 			})
 		})
 		Context("Spec with invalid version name", func() {

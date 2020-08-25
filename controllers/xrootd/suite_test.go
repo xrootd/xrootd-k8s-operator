@@ -22,11 +22,9 @@ USA
 package xrootdcontroller
 
 import (
-	"math/rand"
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -34,25 +32,21 @@ import (
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	"sigs.k8s.io/controller-runtime/pkg/envtest/printer"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	catalogv1alpha1 "github.com/xrootd/xrootd-k8s-operator/apis/catalog/v1alpha1"
 	xrootdv1alpha1 "github.com/xrootd/xrootd-k8s-operator/apis/xrootd/v1alpha1"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/controller/reconciler"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/constant"
+	"github.com/xrootd/xrootd-k8s-operator/tests/integration/framework"
 	// +kubebuilder:scaffold:imports
 )
 
 // These tests use Ginkgo (BDD-style Go testing framework). Refer to
 // http://onsi.github.io/ginkgo/ to learn more about Ginkgo.
 
-var cfg *rest.Config
-var k8sClient client.Client
+var testFramework *framework.Framework
 var k8sManager ctrl.Manager
-var testEnv *envtest.Environment
 
 func TestAPIs(t *testing.T) {
 	RegisterFailHandler(Fail)
@@ -63,31 +57,25 @@ func TestAPIs(t *testing.T) {
 }
 
 var _ = BeforeSuite(func(done Done) {
-	logf.SetLogger(zap.LoggerTo(GinkgoWriter, true))
+	testFramework = framework.NewDefaultFramework(ControllerName, filepath.Join("..", ".."))
 
-	By("bootstrapping test environment")
-	testEnv = &envtest.Environment{
-		ErrorIfCRDPathMissing: true,
-		CRDDirectoryPaths:     []string{filepath.Join("..", "..", "config", "crd", "bases")},
-	}
-	Expect(os.Setenv(constant.EnvXrootdOpConfigmapPath, filepath.Join("..", "..", "configmaps"))).ToNot(HaveOccurred())
+	framework.ExpectNoError(os.Setenv(constant.EnvXrootdOpConfigmapPath, filepath.Join(testFramework.RootPath, "configmaps")))
 
 	var err error
-	cfg, err = testEnv.Start()
-	Expect(err).ToNot(HaveOccurred())
-	Expect(cfg).ToNot(BeNil())
-
 	err = catalogv1alpha1.AddToScheme(scheme.Scheme)
-	Expect(err).NotTo(HaveOccurred())
+	framework.ExpectNoError(err)
 	err = xrootdv1alpha1.AddToScheme(scheme.Scheme)
-	Expect(err).NotTo(HaveOccurred())
+	framework.ExpectNoError(err)
 
 	// +kubebuilder:scaffold:scheme
 
-	k8sManager, err = ctrl.NewManager(cfg, ctrl.Options{
-		Scheme: scheme.Scheme,
+	testFramework.Start(func(cfg *rest.Config) client.Client {
+		k8sManager, err = ctrl.NewManager(cfg, ctrl.Options{
+			Scheme: scheme.Scheme,
+		})
+		framework.ExpectNoError(err)
+		return k8sManager.GetClient()
 	})
-	Expect(err).ToNot(HaveOccurred())
 
 	// setup xrootd controller
 	err = (&XrootdClusterReconciler{
@@ -106,25 +94,10 @@ var _ = BeforeSuite(func(done Done) {
 		Expect(k8sManager.Start(ctrl.SetupSignalHandler())).Should(Succeed())
 	}()
 
-	k8sClient = k8sManager.GetClient()
-	Expect(k8sClient).ToNot(BeNil())
-
 	close(done)
 }, 60)
 
 var _ = AfterSuite(func() {
 	By("tearing down the test environment")
-	err := testEnv.Stop()
-	Expect(err).ToNot(HaveOccurred())
+	testFramework.TeardownCluster()
 })
-
-const charset = "abcdefghijklmnopqrstuvwxyz"
-
-func randomStringWithCharset(length int, charset string) string {
-	var seededRand = rand.New(rand.NewSource(time.Now().UnixNano()))
-	b := make([]byte, length)
-	for i := range b {
-		b[i] = charset[seededRand.Intn(len(charset))]
-	}
-	return string(b)
-}
