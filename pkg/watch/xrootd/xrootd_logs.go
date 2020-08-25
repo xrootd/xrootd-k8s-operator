@@ -238,4 +238,4 @@ type podStatus struct {
 }
 
 const logPatternXrootdWorkerIsConnected = `Protocol: Logged into .+\n`
-const logPatternXrootdRedirectorIsConnected = `Protocol: Primary server.+ logged in.\n`
+const logPatternXrootdRedirectorIsConnected = `State: Status changed to active \+ staging\n`

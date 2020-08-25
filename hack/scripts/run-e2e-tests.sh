@@ -61,7 +61,7 @@ while ! kubectl wait --for=condition=Available xrootdclusters.xrootd.xrootd.org 
 done
 
 # Extra sleep so tests do not randomly fail
-sleep 2
+sleep 6
 
 for script in "$@"; do
   if ! kubectl exec "$SHELL_POD" -it -- "/tmp/e2e/$(basename $script)" -i "$INSTANCE" $(if $VERBOSE; then echo -n "-v"; fi); then

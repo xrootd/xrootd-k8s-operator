@@ -33,7 +33,10 @@ func nowStamp() string {
 }
 
 func log(level string, format string, args ...interface{}) {
-	fmt.Fprintf(ginkgo.GinkgoWriter, nowStamp()+": "+level+": "+format+"\n", args...)
+	_, err := fmt.Fprintf(ginkgo.GinkgoWriter, nowStamp()+": "+level+": "+format+"\n", args...)
+	if err != nil {
+		panic(err)
+	}
 }
 
 // Logf logs the info.
