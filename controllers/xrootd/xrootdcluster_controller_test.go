@@ -62,20 +62,23 @@ var _ = Describe("XrootdCluster Controller", func() {
 		versionToCreate *catalogv1alpha1.XrootdVersion
 		clusterSpec     xrootdv1alpha1.XrootdClusterSpec
 		clusterToCreate *xrootdv1alpha1.XrootdCluster
+		versionKey      types.NamespacedName
+		clusterKey      types.NamespacedName
 	)
 
-	clusterKey := types.NamespacedName{
-		Namespace: "default",
-		Name:      "test-xrootdcluster-" + framework.RandomAlphabaticalString(10),
-	}
-	versionKey := types.NamespacedName{
-		Namespace: "default",
-		Name:      "test-xrootdversion-" + framework.RandomAlphabaticalString(10),
-	}
-
-	BeforeEach(testFramework.BeforeEach)
+	// sets up test framework
+	testFramework.InitOnRunningSuite()
 
 	BeforeEach(func() {
+		clusterKey = types.NamespacedName{
+			Namespace: testFramework.GetNamespace(),
+			Name:      "test-xrootdcluster-" + framework.RandomAlphabaticalString(5),
+		}
+		versionKey = types.NamespacedName{
+			Namespace: testFramework.GetNamespace(),
+			Name:      "test-xrootdversion-" + framework.RandomAlphabaticalString(5),
+		}
+
 		versionSpec = catalogv1alpha1.XrootdVersionSpec{
 			Version: "latest",
 			Image:   "qserv/xrootd:latest",

@@ -45,7 +45,6 @@ import (
 // These tests use Ginkgo (BDD-style Go testing framework). Refer to
 // http://onsi.github.io/ginkgo/ to learn more about Ginkgo.
 
-var testFramework *framework.Framework
 var k8sManager ctrl.Manager
 
 func TestAPIs(t *testing.T) {
@@ -57,8 +56,6 @@ func TestAPIs(t *testing.T) {
 }
 
 var _ = BeforeSuite(func(done Done) {
-	testFramework = framework.NewDefaultFramework(ControllerName, filepath.Join("..", ".."))
-
 	framework.ExpectNoError(os.Setenv(constant.EnvXrootdOpConfigmapPath, filepath.Join(testFramework.RootPath, "configmaps")))
 
 	var err error
