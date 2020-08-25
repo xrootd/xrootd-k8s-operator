@@ -28,6 +28,10 @@ jobs:
         uses: engineerd/setup-kind@v0.4.0
       - name: Run Unit Tests
         run: make test
+      - name: Push Coverage report to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          file: ./cover.out
       - name: Build operator and Load Image
         run: make build
       - name: Deploy operator
