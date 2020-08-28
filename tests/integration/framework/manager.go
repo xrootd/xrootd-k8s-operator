@@ -19,33 +19,22 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
 
-package k8sutil
+package framework
 
 import (
-	"testing"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	"sigs.k8s.io/controller-runtime/pkg/envtest/printer"
+	"k8s.io/client-go/kubernetes/scheme"
+	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-const SuiteName = "K8S Utilities"
-
-func TestK8SUtilities(t *testing.T) {
-	RegisterFailHandler(Fail)
-
-	RunSpecsWithDefaultAndCustomReporters(t,
-		SuiteName,
-		[]Reporter{printer.NewlineReporter{}})
+// GetManager either gets an existing manager or creates a new one
+func (f *Framework) GetManager() ctrl.Manager {
+	if f.manager != nil {
+		return f.manager
+	}
+	mgr, err := ctrl.NewManager(f.clientConfig, ctrl.Options{
+		Scheme:             scheme.Scheme,
+		MetricsBindAddress: "0",
+	})
+	ExpectNoError(err)
+	return mgr
 }
-
-var _ = BeforeSuite(func(done Done) {
-	testFramework.Start()
-
-	close(done)
-}, 60)
-
-var _ = AfterSuite(func() {
-	By("tearing down the test environment")
-	testFramework.TeardownCluster()
-})

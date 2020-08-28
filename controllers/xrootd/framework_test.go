@@ -22,9 +22,9 @@ USA
 package xrootdcontroller
 
 import (
-	"path/filepath"
-
 	"github.com/xrootd/xrootd-k8s-operator/tests/integration/framework"
 )
 
-var testFramework = framework.NewDefaultFramework(ControllerName, filepath.Join("..", ".."))
+var testFramework = framework.NewDefaultFramework(ControllerName, framework.Options{
+	UseManager: true,
+})

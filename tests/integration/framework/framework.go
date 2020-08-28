@@ -24,7 +24,9 @@ package framework
 import (
 	"context"
 	"fmt"
+	"path"
 	"path/filepath"
+	"runtime"
 
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
@@ -32,7 +34,9 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientset "k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -46,18 +50,53 @@ type Framework struct {
 	clientConfig *rest.Config
 	Client       client.Client
 	ClientSet    clientset.Interface
+	manager      ctrl.Manager
 	testEnv      *envtest.Environment
 
+	Namespace *corev1.Namespace
+	options   Options
+}
+
+// Options describe configuration for test framework
+type Options struct {
+	UseManager            bool
 	SkipNamespaceCreation bool
-	Namespace             *corev1.Namespace
 	RootPath              string
 }
 
-// NewDefaultFramework creates a new Test Framework with CRDs
-func NewDefaultFramework(baseName string, rootPath string) *Framework {
+// NewDefaultFramework creates a new Test Framework with default options (like RootPath)
+func NewDefaultFramework(baseName string, options ...Options) *Framework {
+	if len(options) > 1 {
+		panic("provide atmost one Options as optional arg")
+	}
+	var option Options
+	if len(options) > 0 {
+		option = options[0]
+	} else {
+		option = Options{}
+	}
+	_, rootPath, _, ok := runtime.Caller(0)
+	if !ok {
+		panic("cannot get caller information")
+	}
+	rootPath = path.Join(rootPath, "..", "..", "..", "..")
+	option.RootPath = rootPath
+	return NewFramework(baseName, option)
+}
+
+// NewFramework creates a new Test Framework with CRDs
+func NewFramework(baseName string, options Options) *Framework {
 	logf.SetLogger(zap.LoggerTo(ginkgo.GinkgoWriter, true))
 
-	rootPath, err := filepath.Abs(rootPath)
+	var (
+		rootPath string
+		err      error
+	)
+	if len(options.RootPath) == 0 {
+		panic("provide a root path to controller")
+	}
+
+	rootPath, err = filepath.Abs(options.RootPath)
 	if err != nil {
 		panic(err)
 	}
@@ -70,14 +109,14 @@ func NewDefaultFramework(baseName string, rootPath string) *Framework {
 	f := &Framework{
 		BaseName: baseName,
 		testEnv:  testEnv,
-		RootPath: rootPath,
+		options:  options,
 	}
 
 	return f
 }
 
 // Start bootstraps the test env and sets the client
-func (f *Framework) Start(getClient func(cfg *rest.Config) client.Client) {
+func (f *Framework) Start() {
 	Logf("bootstrapping test environment")
 	cfg, err := f.testEnv.Start()
 	ExpectNoError(err)
@@ -88,8 +127,22 @@ func (f *Framework) Start(getClient func(cfg *rest.Config) client.Client) {
 	ExpectNoError(err)
 	gomega.Expect(f.ClientSet).ToNot(gomega.BeNil())
 
-	f.Client = getClient(cfg)
+	if f.options.UseManager {
+		f.manager = f.GetManager()
+		f.Client = f.manager.GetClient()
+	} else {
+		f.Client, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
+		ExpectNoError(err)
+	}
 	gomega.Expect(f.Client).ToNot(gomega.BeNil())
+
+	if f.options.UseManager {
+		// start manager
+		go func() {
+			defer ginkgo.GinkgoRecover()
+			gomega.Expect(f.manager.Start(ctrl.SetupSignalHandler())).Should(gomega.Succeed())
+		}()
+	}
 }
 
 // InitOnRunningSuite sets up ginkgo's BeforeEach & AfterEach.
@@ -101,7 +154,7 @@ func (f *Framework) InitOnRunningSuite() {
 
 // beforeEach sets up a random namespace if allowed
 func (f *Framework) beforeEach() {
-	if !f.SkipNamespaceCreation {
+	if !f.options.SkipNamespaceCreation {
 		ginkgo.By(fmt.Sprintf("Building a namespace api object, basename %s", f.BaseName))
 		namespace, err := f.CreateNamespace(f.BaseName, map[string]string{
 			"e2e-framework": f.BaseName,
@@ -162,4 +215,9 @@ func (f Framework) GetNamespace() string {
 // TeardownCluster stops the test environment
 func (f *Framework) TeardownCluster() {
 	ExpectNoError(f.testEnv.Stop())
+}
+
+// GetRootPath returns the configured root path of controller
+func (f Framework) GetRootPath() string {
+	return f.options.RootPath
 }

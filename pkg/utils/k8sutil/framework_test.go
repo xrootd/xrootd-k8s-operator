@@ -22,9 +22,7 @@ USA
 package k8sutil
 
 import (
-	"path/filepath"
-
 	"github.com/xrootd/xrootd-k8s-operator/tests/integration/framework"
 )
 
-var testFramework = framework.NewDefaultFramework("k8sutil", filepath.Join("..", "..", ".."))
+var testFramework = framework.NewDefaultFramework("k8sutil")

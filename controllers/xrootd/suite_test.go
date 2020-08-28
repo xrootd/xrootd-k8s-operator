@@ -29,9 +29,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/client-go/kubernetes/scheme"
-	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest/printer"
 
 	catalogv1alpha1 "github.com/xrootd/xrootd-k8s-operator/apis/catalog/v1alpha1"
@@ -45,8 +43,6 @@ import (
 // These tests use Ginkgo (BDD-style Go testing framework). Refer to
 // http://onsi.github.io/ginkgo/ to learn more about Ginkgo.
 
-var k8sManager ctrl.Manager
-
 func TestAPIs(t *testing.T) {
 	RegisterFailHandler(Fail)
 
@@ -56,7 +52,7 @@ func TestAPIs(t *testing.T) {
 }
 
 var _ = BeforeSuite(func(done Done) {
-	framework.ExpectNoError(os.Setenv(constant.EnvXrootdOpConfigmapPath, filepath.Join(testFramework.RootPath, "configmaps")))
+	framework.ExpectNoError(os.Setenv(constant.EnvXrootdOpConfigmapPath, filepath.Join(testFramework.GetRootPath(), "configmaps")))
 
 	var err error
 	err = catalogv1alpha1.AddToScheme(scheme.Scheme)
@@ -66,30 +62,18 @@ var _ = BeforeSuite(func(done Done) {
 
 	// +kubebuilder:scaffold:scheme
 
-	testFramework.Start(func(cfg *rest.Config) client.Client {
-		k8sManager, err = ctrl.NewManager(cfg, ctrl.Options{
-			Scheme: scheme.Scheme,
-		})
-		framework.ExpectNoError(err)
-		return k8sManager.GetClient()
-	})
+	testFramework.Start()
 
 	// setup xrootd controller
 	err = (&XrootdClusterReconciler{
 		BaseReconciler: reconciler.NewBaseReconciler(
-			k8sManager.GetClient(), k8sManager.GetScheme(),
-			k8sManager.GetEventRecorderFor(ControllerName), k8sManager.GetConfig(),
+			testFramework.GetManager().GetClient(), testFramework.GetManager().GetScheme(),
+			testFramework.GetManager().GetEventRecorderFor(ControllerName), testFramework.GetManager().GetConfig(),
 		),
 		WatchManager: reconciler.NewWatchManager(nil),
 		Log:          ctrl.Log.WithName("controllers").WithName("XrootdCluster"),
-	}).SetupWithManager(k8sManager)
+	}).SetupWithManager(testFramework.GetManager())
 	Expect(err).ToNot(HaveOccurred())
-
-	// start manager
-	go func() {
-		defer GinkgoRecover()
-		Expect(k8sManager.Start(ctrl.SetupSignalHandler())).Should(Succeed())
-	}()
 
 	close(done)
 }, 60)
