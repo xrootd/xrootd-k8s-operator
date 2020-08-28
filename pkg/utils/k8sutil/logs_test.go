@@ -32,7 +32,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-var _ = Describe("Logs Tests", func() {
+var _ = Describe("Pod Logs Tests", func() {
 	var (
 		pod        *corev1.Pod
 		logOptions *corev1.PodLogOptions

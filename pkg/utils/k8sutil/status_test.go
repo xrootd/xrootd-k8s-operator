@@ -34,7 +34,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-var _ = Describe("Status Tests", func() {
+var _ = Describe("Pod Status Tests", func() {
 	var (
 		pod      *corev1.Pod
 		condType corev1.PodConditionType
