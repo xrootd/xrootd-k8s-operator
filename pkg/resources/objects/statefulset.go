@@ -46,9 +46,11 @@ func GenerateXrootdStatefulSet(
 		},
 	}
 	if componentName == constant.XrootdWorker {
-		ss.Spec.VolumeClaimTemplates = []v1.PersistentVolumeClaim{
-			getDataPVClaim(xrootd),
+		pvc, err := getDataPVClaim(xrootd)
+		if err != nil {
+			rLog.WithName("volume.DataPVClaim").Error(err, "failed parsing storage capacity", "xrootd", xrootd)
 		}
+		ss.Spec.VolumeClaimTemplates = []v1.PersistentVolumeClaim{*pvc}
 	}
 	return ss
 }
