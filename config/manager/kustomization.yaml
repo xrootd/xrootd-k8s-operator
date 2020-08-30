@@ -5,3 +5,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: qserv/xrootd-operator
+  newTag: 0.2.1
