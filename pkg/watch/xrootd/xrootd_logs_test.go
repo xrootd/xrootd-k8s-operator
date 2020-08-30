@@ -22,7 +22,6 @@ func testGrepReader(t *testing.T, pattern string, logs string) {
 			err = nil
 		} else {
 			err = errors.Wrap(err, "unable to read")
-			return
 		}
 	}
 	if err != nil {

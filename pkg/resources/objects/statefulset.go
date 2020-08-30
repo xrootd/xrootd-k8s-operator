@@ -9,6 +9,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// GenerateXrootdStatefulSet generated xrootd statefulset
 func GenerateXrootdStatefulSet(
 	xrootd *v1alpha1.XrootdCluster, objectName types.ObjectName,
 	compLabels types.Labels, componentName types.ComponentName,
@@ -45,9 +46,12 @@ func GenerateXrootdStatefulSet(
 		},
 	}
 	if componentName == constant.XrootdWorker {
-		ss.Spec.VolumeClaimTemplates = []v1.PersistentVolumeClaim{
-			getDataPVClaim(xrootd),
+		pvc, err := getDataPVClaim(xrootd)
+		if err != nil {
+			rLog.WithName("GenerateXrootdStatefulSet").Error(err, "could not create pvc for worker", "xrootd", xrootd)
+			panic(err)
 		}
+		ss.Spec.VolumeClaimTemplates = []v1.PersistentVolumeClaim{*pvc}
 	}
 	return ss
 }

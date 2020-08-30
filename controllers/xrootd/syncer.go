@@ -19,7 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
 
-package controllers
+package xrootdcontroller
 
 import (
 	"reflect"
@@ -37,6 +37,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
+// SyncResources implements SyncReconciler and executes the logic to sync cluster-managed resources
 func (r *XrootdClusterReconciler) SyncResources(instance controllerutil.Object) error {
 	xrootd := instance.(*xrootdv1alpha1.XrootdCluster)
 	log := r.Log.WithName("syncResources")
@@ -86,6 +87,7 @@ func (r *XrootdClusterReconciler) SyncResources(instance controllerutil.Object) 
 	return nil
 }
 
+// GetOwnedResourceKinds implements SyncReconciler and returns the list of kinds of managed objects
 func (r *XrootdClusterReconciler) GetOwnedResourceKinds(instance runtime.Object) []runtime.Object {
 	return []runtime.Object{
 		&corev1.ConfigMapList{},

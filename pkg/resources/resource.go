@@ -3,19 +3,17 @@ package resources
 import (
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/xrootd/xrootd-k8s-operator/apis/xrootd/v1alpha1"
-	appsv1 "k8s.io/api/apps/v1"
-	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-var log = logf.Log.WithName("resource")
+// var log = logf.Log.WithName("resource")
 
+// Resource is a wrapper over k8s Object
 type Resource struct {
 	Object controllerutil.Object
 }
 
+// Resources represents a list of Resource
 type Resources []Resource
 
 // InstanceResourceSet contains Resources for a given Xrootd instance
@@ -24,6 +22,7 @@ type InstanceResourceSet struct {
 	xrootd    *v1alpha1.XrootdCluster
 }
 
+// NewInstanceResourceSet creates a new InstanceResourceSet for the given xrootd instance
 func NewInstanceResourceSet(xrootd *v1alpha1.XrootdCluster) *InstanceResourceSet {
 	return &InstanceResourceSet{
 		resources: Resources(make([]Resource, 0)),
@@ -31,6 +30,7 @@ func NewInstanceResourceSet(xrootd *v1alpha1.XrootdCluster) *InstanceResourceSet
 	}
 }
 
+// GetResources returns the resources managed by this ResourceSet
 func (irs InstanceResourceSet) GetResources() Resources {
 	return irs.resources
 }
@@ -57,18 +57,12 @@ func (irs InstanceResourceSet) GetResources() Resources {
 // 	return result.([]lockedresource.LockedResource), err
 // }
 
+// ToSlice returns the slice representation of Resources
 func (res Resources) ToSlice() []Resource {
 	return []Resource(res)
 }
 
-func (res Resources) GetObjects() []controllerutil.Object {
-	objects := make([]controllerutil.Object, 0)
-	for _, item := range res {
-		objects = append(objects, item.Object)
-	}
-	return objects
-}
-
+// GetK8SResources returns the slice representation of managed k8s resources
 func (res Resources) GetK8SResources() []resource.KubernetesResource {
 	objects := make([]resource.KubernetesResource, len(res))
 	for index, item := range res {
@@ -85,19 +79,22 @@ func (irs *InstanceResourceSet) addResource(newResources ...Resource) {
 	irs.resources = append(irs.resources, newResources...)
 }
 
-func (res *Resource) fillGroupVersionKind() error {
-	scheme := runtime.NewScheme()
-	err := v1.AddToScheme(scheme)
-	err = appsv1.AddToScheme(scheme)
-	if err != nil {
-		return err
-	}
-	gvks, _, err := scheme.ObjectKinds(res.Object)
-	log.Info("Finding ObjectKinds", "ObjectKinds", gvks)
-	if err != nil {
-		return err
-	}
-	res.Object.GetObjectKind().SetGroupVersionKind(gvks[0])
-	log.Info("SetGroupVersionKind to Object", "GroupVersionKind", res.Object.GetObjectKind().GroupVersionKind())
-	return nil
-}
+// func (res *Resource) fillGroupVersionKind() error {
+// 	scheme := runtime.NewScheme()
+// 	err := v1.AddToScheme(scheme)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	err = appsv1.AddToScheme(scheme)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	gvks, _, err := scheme.ObjectKinds(res.Object)
+// 	log.Info("Finding ObjectKinds", "ObjectKinds", gvks)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	res.Object.GetObjectKind().SetGroupVersionKind(gvks[0])
+// 	log.Info("SetGroupVersionKind to Object", "GroupVersionKind", res.Object.GetObjectKind().GroupVersionKind())
+// 	return nil
+// }

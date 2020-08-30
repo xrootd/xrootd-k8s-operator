@@ -19,7 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
 
-package controllers
+package xrootdcontroller
 
 import (
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/constant"
@@ -27,12 +27,14 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
+// RefreshWatch implements WatchReconciler and runs RefreshWatch on the watch manager
 func (r *XrootdClusterReconciler) RefreshWatch(request reconcile.Request) error {
 	reqLogger := r.Log.WithValues("xrootdcluster", request.NamespacedName)
 	reqLogger.Info("Watching Xrootd resources...")
 	return r.WatchManager.RefreshWatch(request)
 }
 
+// AddXrootdLogger adds the Logs Watchers for Xrootd Redirector and Worker components
 func (r *XrootdClusterReconciler) AddXrootdLogger() {
 	r.AddWatchers(xrootd.NewLogsWatcher(constant.XrootdRedirector, r))
 	r.AddWatchers(xrootd.NewLogsWatcher(constant.XrootdWorker, r))

@@ -19,7 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
 
-package controllers
+package xrootdcontroller
 
 import (
 	"context"
@@ -32,6 +32,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
+// UpdateStatus implements StatusReconciler and runs after sync reconciler is done
 func (r *XrootdClusterReconciler) UpdateStatus(instance controllerutil.Object) error {
 	xrootd := instance.(*xrootdv1alpha1.XrootdCluster)
 
@@ -53,7 +54,7 @@ func (r *XrootdClusterReconciler) UpdateStatus(instance controllerutil.Object) e
 	}
 	xrootd.Status.RedirectorStatus = xrootdv1alpha1.NewMemberStatus([]string{}, unreadyPods)
 
-	xrootd.Status.Phase = xrootdv1alpha1.ClusterPhaseCreating
+	xrootd.Status.SetPhase(xrootdv1alpha1.ClusterPhaseCreating)
 
 	if err := r.GetClient().Status().Update(context.TODO(), xrootd); err != nil {
 		return errors.Wrap(err, "failed updating xrootd instance status")

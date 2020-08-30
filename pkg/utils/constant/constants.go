@@ -44,3 +44,6 @@ const XrootdSharedAdminPathVolumeName types.VolumeName = "adminpath"
 
 // XrootdSharedAdminPath is the mount path for the volume
 const XrootdSharedAdminPath = "/tmp/xrd"
+
+// EnvXrootdOpConfigmapPath is the environment key for path to configmaps folder
+const EnvXrootdOpConfigmapPath = "XROOTD_OPERATOR_CONFIGMAPS_PATH"

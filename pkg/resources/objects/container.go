@@ -18,6 +18,9 @@ func getXrootdContainersAndVolume(xrootd *v1alpha1.XrootdCluster, component type
 	// Required for worker to communicate to cmsd using the named pipe located at 'adminpath'
 	volumeSet.addEmptyDirVolume(constant.XrootdSharedAdminPathVolumeName, constant.XrootdSharedAdminPath)
 	image := xrootd.Status.CurrentXrootdProtocol.Image
+	if len(image) == 0 {
+		panic(fmt.Errorf("xrootd image not set"))
+	}
 	if component == constant.XrootdWorker {
 		volumeSet.addDataPVVolumeMount(filepath.Join("/", "data"))
 	}

@@ -6,6 +6,7 @@ import (
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/constant"
 )
 
+// AddXrootdRedirectorServiceResource adds service for redirector component
 func (irs *InstanceResourceSet) AddXrootdRedirectorServiceResource() {
 	xrootd := irs.xrootd
 	component := constant.XrootdRedirector
@@ -15,6 +16,7 @@ func (irs *InstanceResourceSet) AddXrootdRedirectorServiceResource() {
 	irs.addResource(Resource{Object: &service})
 }
 
+// AddXrootdWorkerServiceResource adds service for worker component
 func (irs *InstanceResourceSet) AddXrootdWorkerServiceResource() {
 	xrootd := irs.xrootd
 	component := constant.XrootdWorker

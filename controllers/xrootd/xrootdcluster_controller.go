@@ -19,10 +19,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 USA
 */
 
-package controllers
+package xrootdcontroller
 
 import (
-	"fmt"
+	"context"
 
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
@@ -34,7 +34,6 @@ import (
 
 	xrootdv1alpha1 "github.com/xrootd/xrootd-k8s-operator/apis/xrootd/v1alpha1"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/controller/reconciler"
-	"github.com/xrootd/xrootd-k8s-operator/pkg/utils"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/constant"
 )
 
@@ -60,9 +59,12 @@ var _ reconciler.StatusReconciler = &XrootdClusterReconciler{}
 // +kubebuilder:rbac:groups=xrootd.xrootd.org,resources=xrootdclusters,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=xrootd.xrootd.org,resources=xrootdclusters/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=catalog.xrootd.org,resources=xrootdversions,verbs=get;list;watch
-// +kubebuilder:rbac:groups="",resources=pods;services;services/finalizers;endpoints;persistentvolumeclaims;events;configmaps;secrets,verbs=create;delete;get;list;patch;update;watch
+// +kubebuilder:rbac:groups="",resources=pods;pods/status;services;services/finalizers;endpoints;persistentvolumeclaims;events;configmaps;secrets,verbs=create;delete;get;list;patch;update;watch
+// +kubebuilder:rbac:groups="",resources=pods/log,verbs=get;list;watch
 // +kubebuilder:rbac:groups=apps,resources=deployments;daemonsets;replicasets;statefulsets,verbs=create;delete;get;list;patch;update;watch
+// +kubebuilder:rbac:groups=apps,resources=deployments/finalizers,verbs=update
 
+// Reconcile executes the reconciliation logic on trigger of watched events
 func (r *XrootdClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	// ctx := context.Background()
 	logger := r.Log.WithValues("xrootdcluster", req.NamespacedName)
@@ -70,39 +72,38 @@ func (r *XrootdClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 
 	// Fetch the Xrootd instance
 	instance := &xrootdv1alpha1.XrootdCluster{}
-	// Call reconcile logic
+	// Call common reconcile logic
 	result, err := reconciler.Reconcile(r, req, instance, logger)
 	if err == nil {
 		logger.Info("Reconciled successfully!")
+	} else {
+		logger.Error(err, "Failed to reconcile!")
 	}
 	return result, err
 }
 
-// IsValid determines if a Xrootd instance is valid and initializes empty fields.
-func (r *XrootdClusterReconciler) IsValid(instance controllerutil.Object) (bool, error) {
+// ManageError handles any error during reconciliation and updates CR status phase and condition
+func (r *XrootdClusterReconciler) ManageError(instance controllerutil.Object, err error, log logr.Logger) (reconcile.Result, error) {
 	xrootd := instance.(*xrootdv1alpha1.XrootdCluster)
-	if xrootd.Spec.Redirector.Replicas == 0 {
-		xrootd.Spec.Redirector.Replicas = 1
+
+	// set member status to empty array (otherwise status update fails)
+	xrootd.Status.RedirectorStatus = xrootdv1alpha1.NewMemberStatus([]string{}, []string{})
+	xrootd.Status.WorkerStatus = xrootdv1alpha1.NewMemberStatus([]string{}, []string{})
+
+	// set cluster to failed status
+	xrootd.Status.SetPhase(xrootdv1alpha1.ClusterPhaseFailed)
+
+	// clear available condition for cluster if set
+	xrootd.Status.ClearCondition(xrootdv1alpha1.ClusterConditionAvailable)
+
+	if tErr := r.GetClient().Status().Update(context.Background(), xrootd); tErr != nil {
+		r.Log.Error(tErr, "failed updating xrootd instance status")
+		err = errors.Wrap(err, tErr.Error())
 	}
-	if xrootd.Spec.Worker.Replicas == 0 {
-		xrootd.Spec.Worker.Replicas = 1
-	}
-	if len(xrootd.Spec.Worker.Storage.Class) == 0 {
-		xrootd.Spec.Worker.Storage.Class = "standard"
-	}
-	if len(xrootd.Spec.Version) == 0 {
-		return false, fmt.Errorf("Provide xrootd version in instance")
-	}
-	if versionInfo, err := utils.GetXrootdVersionInfo(r.GetClient(), instance.GetNamespace(), xrootd.Spec.Version); err != nil {
-		return false, errors.Wrapf(err, "Unable to find requested version - %s", xrootd.Spec.Version)
-	} else if image := versionInfo.Spec.Image; len(image) == 0 {
-		return false, fmt.Errorf("Invalid image, '%s', provided for the given version, '%s'", image, xrootd.Spec.Version)
-	} else {
-		xrootd.SetVersionInfo(*versionInfo)
-	}
-	return true, nil
+	return r.BaseReconciler.ManageError(instance, err, log)
 }
 
+// SetupWithManager assigns controller manager and watches
 func (r *XrootdClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	r.AddXrootdLogger()
 	if err := r.StartWatching(); err != nil {

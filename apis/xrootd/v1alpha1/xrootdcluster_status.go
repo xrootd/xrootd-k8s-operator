@@ -35,6 +35,7 @@ type ClusterConditionType string
 
 /*
 These are valid Cluster Phases.
+"ClusterPhaseInvalid" means the cluster spec is invalid.
 "ClusterPhaseCreating" means the the cluster is being created.
 "ClusterPhaseRunning" means the cluster is running in healthy state.
 "ClusterPhaseFailed" means the cluster is failing.
@@ -48,12 +49,14 @@ const (
 
 /*
 These are valid Cluster Condition types.
+"ClusterConditionValid" means the cluster spec is valid.
 "ClusterConditionAvailable" means the cluster is available to communicate.
 "ClusterConditionRecovering" means the cluster is in recovering condition
 "ClusterConditionScaling" means the cluster is scaling up/down.
 "ClusterConditionUpgrading" means the cluster is undergoing a version upgrade.
 */
 const (
+	ClusterConditionValid      ClusterConditionType = "Valid"
 	ClusterConditionAvailable  ClusterConditionType = "Available"
 	ClusterConditionRecovering ClusterConditionType = "Recovering"
 	ClusterConditionScaling    ClusterConditionType = "Scaling"
@@ -138,9 +141,21 @@ func (cs *XrootdClusterStatus) SetReadyCondition() {
 	cs.setClusterCondition(*c)
 }
 
-// ClearCondition clears our the given condition type
+// SetSpecValidCondition sets the ClusterValid condition type to given value
+func (cs *XrootdClusterStatus) SetSpecValidCondition(isValid bool, reason string, msg string) {
+	actualStatus := v1.ConditionUnknown
+	if isValid {
+		actualStatus = v1.ConditionTrue
+	} else {
+		actualStatus = v1.ConditionFalse
+	}
+	c := newClusterCondition(ClusterConditionValid, actualStatus, reason, msg)
+	cs.setClusterCondition(*c)
+}
+
+// ClearCondition clears the given condition type
 func (cs *XrootdClusterStatus) ClearCondition(t ClusterConditionType) {
-	pos, _ := getClusterCondition(cs, t)
+	pos, _ := cs.GetClusterCondition(t)
 	if pos == -1 {
 		return
 	}
@@ -148,12 +163,7 @@ func (cs *XrootdClusterStatus) ClearCondition(t ClusterConditionType) {
 }
 
 func (cs *XrootdClusterStatus) setClusterCondition(c ClusterCondition) {
-	pos, cp := getClusterCondition(cs, c.Type)
-	if cp != nil &&
-		cp.Status == c.Status && cp.Reason == c.Reason && cp.Message == c.Message {
-		return
-	}
-
+	pos, cp := cs.GetClusterCondition(c.Type)
 	if cp != nil {
 		cs.Conditions[pos] = c
 	} else {
@@ -161,8 +171,9 @@ func (cs *XrootdClusterStatus) setClusterCondition(c ClusterCondition) {
 	}
 }
 
-func getClusterCondition(status *XrootdClusterStatus, t ClusterConditionType) (int, *ClusterCondition) {
-	for i, c := range status.Conditions {
+// GetClusterCondition returns position and condition pointer from the .Conditions array
+func (cs *XrootdClusterStatus) GetClusterCondition(t ClusterConditionType) (int, *ClusterCondition) {
+	for i, c := range cs.Conditions {
 		if t == c.Type {
 			return i, &c
 		}

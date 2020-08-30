@@ -4,8 +4,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
-type watchFunc func(reconcile.Request) error
-
 // GroupedRequestWatcher groups reconcile.Request based on NamespacedName and sends distinct ones
 // to their goroutines.
 type GroupedRequestWatcher struct {

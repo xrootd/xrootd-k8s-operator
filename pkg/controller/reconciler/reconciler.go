@@ -4,7 +4,8 @@ import (
 	"context"
 
 	"github.com/go-logr/logr"
-	"k8s.io/apimachinery/pkg/api/errors"
+	"github.com/pkg/errors"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/record"
@@ -79,7 +80,7 @@ func IsBeingDeleted(obj resource) bool {
 // object and updating the `instance` struct
 func (br *BaseReconciler) GetResourceInstance(request reconcile.Request, instance resource) error {
 	if err := br.GetClient().Get(context.TODO(), request.NamespacedName, instance); err != nil {
-		if errors.IsNotFound(err) {
+		if apierrors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
 			// Return and don't requeue
@@ -108,42 +109,64 @@ func (br *BaseReconciler) IsValid(instance resource) (bool, error) {
 }
 
 // Reconcile is a helper method abstracting the CR fetching, validation, syncing owned resources and watching resources
-func Reconcile(r Reconciler, request reconcile.Request, instance resource, log logr.Logger) (reconcile.Result, error) {
-	if err := r.GetResourceInstance(request, instance); err != nil {
-		return r.ManageError(instance, err, log)
-	}
-	if ok, err := r.IsValid(instance); !ok {
-		// If CR isn't valid, update the status with error and return
-		return r.ManageError(instance, err, log)
+func Reconcile(r Reconciler, request reconcile.Request, instance resource, log logr.Logger) (result reconcile.Result, err error) {
+	defer func() {
+		// handle panics and send the error result back to event processor
+		if tErr, ok := recover().(error); ok {
+			if err != nil {
+				err = errors.Wrap(tErr, err.Error())
+			} else {
+				err = errors.Wrap(tErr, "faced panic on reconciliation")
+			}
+		}
+		if err != nil {
+			result, err = r.ManageError(instance, err, log)
+		}
+	}()
+
+	if err = r.GetResourceInstance(request, instance); err != nil {
+		result, err = r.ManageError(instance, err, log)
+		return
 	}
 
 	if IsBeingDeleted(instance) {
 		log.Info("Deleting instance...", "instance", instance)
 		// TODO: Write Cleanup Logic
-		return reconcile.Result{}, nil
+		result, err = reconcile.Result{}, nil
+		return
+	}
+
+	if ok, tErr := r.IsValid(instance); !ok {
+		// If CR isn't valid, update the status with error and return
+		result, err = r.ManageError(instance, tErr, log)
+		return
 	}
 
 	if syncer, ok := r.(SyncReconciler); ok {
 		log.Info("Started syncing resources...")
-		if err := syncer.SyncResources(instance); err != nil {
+		if tErr := syncer.SyncResources(instance); tErr != nil {
 			log.Error(err, "Failed syncing resources...")
-			return r.ManageError(instance, err, log)
+			result, err = r.ManageError(instance, tErr, log)
+			return
 		}
 	}
 	if watcher, ok := r.(WatchReconciler); ok {
 		log.Info("Started watching resources...")
-		if err := watcher.RefreshWatch(request); err != nil {
+		if tErr := watcher.RefreshWatch(request); tErr != nil {
 			log.Error(err, "Failed watching resources...")
-			return r.ManageError(instance, err, log)
+			result, err = r.ManageError(instance, tErr, log)
+			return
 		}
 	}
 	if statusReconciler, ok := r.(StatusReconciler); ok {
 		log.Info("Started updating status of instance...")
-		if err := statusReconciler.UpdateStatus(instance); err != nil {
+		if tErr := statusReconciler.UpdateStatus(instance); tErr != nil {
 			log.Error(err, "Failed updating status...")
-			return r.ManageError(instance, err, log)
+			result, err = r.ManageError(instance, tErr, log)
+			return
 		}
 	}
 
-	return r.ManageSuccess(instance, log)
+	result, err = r.ManageSuccess(instance, log)
+	return
 }

@@ -8,6 +8,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// GenerateXrootdService generates xrootd service
 func GenerateXrootdService(
 	xrootd *v1alpha1.XrootdCluster, objectName types.ObjectName,
 	compLabels types.Labels, componentName types.ComponentName,
@@ -26,14 +27,14 @@ func GenerateXrootdService(
 			ClusterIP: corev1.ClusterIPNone,
 			Ports: []corev1.ServicePort{
 				{
-					Port:     int32(constant.XrootdPort),
-					Protocol: corev1.ProtocolTCP,
-					Name:     string(constant.Xrootd),
-				},
-				{
 					Port:     int32(constant.CmsdPort),
 					Protocol: corev1.ProtocolTCP,
 					Name:     string(constant.Cmsd),
+				},
+				{
+					Port:     int32(constant.XrootdPort),
+					Protocol: corev1.ProtocolTCP,
+					Name:     string(constant.Xrootd),
 				},
 			},
 			Selector: labels,

@@ -73,20 +73,24 @@ undeploy: manifests kustomize ## Uninstalls the controller and CRDs in the confi
 
 ##@ Tests
 test: generate fmt vet manifests ## Run tests
-	mkdir -p ${ENVTEST_ASSETS_DIR}
-	test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/master/hack/setup-envtest.sh
+	@mkdir -p ${ENVTEST_ASSETS_DIR}
+	@test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/master/hack/setup-envtest.sh
 	@{ \
 		set -e; \
 		source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; \
 		fetch_envtest_tools $(ENVTEST_ASSETS_DIR); \
 		setup_envtest_env $(ENVTEST_ASSETS_DIR); \
 		echo "....... Running tests ......."; \
-		go test ./... -coverprofile cover.out; \
+		go test ./... -coverprofile cover.out; # -ginkgo.randomizeAllSpecs -ginkgo.trace -ginkgo.progress; \
 	}
 
 test-e2e: ## Run e2e tests
 	@echo "....... Running e2e tests ......."
-	@$(SCRIPTS_DIR)/run-e2e-tests.sh $(VERBOSE_SHORT_ARG)
+	@{ \
+		set -e -o pipefail; \
+		$(SCRIPTS_DIR)/run-e2e-tests.sh $(VERBOSE_SHORT_ARG) | \
+			while IFS= read -r line; do printf '%s %s\n' "$$(date -u +'%T')" "$$line"; done \
+	}
 
 
 ##@ Code

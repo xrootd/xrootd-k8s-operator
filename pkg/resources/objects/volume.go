@@ -1,6 +1,7 @@
 package objects
 
 import (
+	"github.com/pkg/errors"
 	"github.com/xrootd/xrootd-k8s-operator/apis/xrootd/v1alpha1"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/types"
@@ -95,13 +96,12 @@ func (ivs *InstanceVolumeSet) addDataPVVolumeMount(mountPath string) {
 	ivs.addVolumeMounts(volumeMount)
 }
 
-func getDataPVClaim(xrootd *v1alpha1.XrootdCluster) v1.PersistentVolumeClaim {
-	defer func() {
-		if err := recover(); err != nil {
-			rLog.WithName("volume.DataPVClaim").Error(err.(error), "failed parsing storage capacity", "xrootd", xrootd)
-		}
-	}()
-	return v1.PersistentVolumeClaim{
+func getDataPVClaim(xrootd *v1alpha1.XrootdCluster) (*v1.PersistentVolumeClaim, error) {
+	storage, err := resource.ParseQuantity(xrootd.Spec.Worker.Storage.Capacity)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed parsing storage capacity")
+	}
+	return &v1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: getDataPVName(xrootd.Name),
 		},
@@ -110,9 +110,9 @@ func getDataPVClaim(xrootd *v1alpha1.XrootdCluster) v1.PersistentVolumeClaim {
 			StorageClassName: &xrootd.Spec.Worker.Storage.Class,
 			Resources: v1.ResourceRequirements{
 				Requests: v1.ResourceList{
-					"storage": resource.MustParse(xrootd.Spec.Worker.Storage.Capacity),
+					"storage": storage,
 				},
 			},
 		},
-	}
+	}, nil
 }

@@ -37,6 +37,7 @@ type XrootdClusterSpec struct {
 	// Version must be name of XrootdVersion CR instance which defines the xrootd protcol image to use in the cluster pods.
 	// The requested XrootdVersion instance must be installed in the target namespace using XrootdVersion CRD.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Xrootd Version Name",xDescriptors="urn:alm:descriptor:io.kubernetes:catalog.xrootd.org:v1alpha1:XrootdVersion"
+	// +kubebuilder:validation:Pattern=".+"
 	Version    string               `json:"version"`
 	Worker     XrootdWorkerSpec     `json:"worker,omitempty"`
 	Redirector XrootdRedirectorSpec `json:"redirector,omitempty"`
