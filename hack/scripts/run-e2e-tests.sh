@@ -18,7 +18,7 @@ EOD
 VERBOSE=false
 
 # get the options
-while getopts vh: c ; do
+while getopts vh c ; do
     case $c in
         v) VERBOSE=true; set -x ;;
         h) usage; exit ;;
