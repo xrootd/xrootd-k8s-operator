@@ -44,7 +44,7 @@ var _ = Describe("Configmap tests", func() {
 
 	Context("with valid configmap path but invalid subpath", func() {
 		It("fails to create", func() {
-			os.Setenv(constant.EnvXrootdOpConfigmapPath, "../../../configmaps")
+			framework.ExpectNoError(os.Setenv(constant.EnvXrootdOpConfigmapPath, "../../../configmaps"))
 			Expect(func() {
 				GenerateContainerConfigMap(xrootd, utils.GetObjectName(constant.XrootdRedirector, xrootd.Name), utils.GetComponentLabels(constant.XrootdRedirector, xrootd.Name), constant.CfgXrootd, "dir")
 			}).To(Panic())
@@ -53,7 +53,7 @@ var _ = Describe("Configmap tests", func() {
 
 	Context("with valid configmap path and valid subpath", func() {
 		It("generates a configmap", func() {
-			os.Setenv(constant.EnvXrootdOpConfigmapPath, "../../../configmaps")
+			framework.ExpectNoError(os.Setenv(constant.EnvXrootdOpConfigmapPath, "../../../configmaps"))
 			name := utils.GetObjectName(constant.XrootdRedirector, xrootd.Name)
 			cm := GenerateContainerConfigMap(xrootd, name, utils.GetComponentLabels(constant.XrootdRedirector, xrootd.Name), constant.CfgXrootd, "etc")
 			Expect(cm.Name).Should(Equal(utils.SuffixName(string(name), "etc")))

@@ -87,3 +87,29 @@ func TestApplyTemplateWithTemplateFunction(t *testing.T) {
 		t.Error("empty result")
 	}
 }
+
+func TestApplyTemplateWithInvalidPath(t *testing.T) {
+	_, err := ApplyTemplate("wrong/path", nil)
+	if err == nil {
+		t.Errorf("should face error since path is wrong")
+	}
+}
+
+func TestApplyTemplateNilData(t *testing.T) {
+	type data struct {
+		name string
+	}
+	const contents = `
+		hello {{ .Name }}
+	`
+	file, err := createTempTextFile(contents)
+	if err != nil {
+		t.Errorf("error in writing contents: %v", err)
+		return
+	}
+	defer cleanupTempTextFile(file, t)
+	_, err = ApplyTemplate(file.Name(), data{name: "string"})
+	if err == nil {
+		t.Errorf("should face error executing with invalid template content")
+	}
+}
