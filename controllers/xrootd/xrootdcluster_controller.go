@@ -76,6 +76,8 @@ func (r *XrootdClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 	result, err := reconciler.Reconcile(r, req, instance, logger)
 	if err == nil {
 		logger.Info("Reconciled successfully!")
+	} else {
+		logger.Error(err, "Failed to reconcile!")
 	}
 	return result, err
 }
