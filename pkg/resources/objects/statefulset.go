@@ -48,7 +48,8 @@ func GenerateXrootdStatefulSet(
 	if componentName == constant.XrootdWorker {
 		pvc, err := getDataPVClaim(xrootd)
 		if err != nil {
-			rLog.WithName("volume.DataPVClaim").Error(err, "failed parsing storage capacity", "xrootd", xrootd)
+			rLog.WithName("GenerateXrootdStatefulSet").Error(err, "could not create pvc for worker", "xrootd", xrootd)
+			panic(err)
 		}
 		ss.Spec.VolumeClaimTemplates = []v1.PersistentVolumeClaim{*pvc}
 	}

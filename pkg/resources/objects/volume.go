@@ -1,6 +1,7 @@
 package objects
 
 import (
+	"github.com/pkg/errors"
 	"github.com/xrootd/xrootd-k8s-operator/apis/xrootd/v1alpha1"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/types"
@@ -98,7 +99,7 @@ func (ivs *InstanceVolumeSet) addDataPVVolumeMount(mountPath string) {
 func getDataPVClaim(xrootd *v1alpha1.XrootdCluster) (*v1.PersistentVolumeClaim, error) {
 	storage, err := resource.ParseQuantity(xrootd.Spec.Worker.Storage.Capacity)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed parsing storage capacity")
 	}
 	return &v1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{

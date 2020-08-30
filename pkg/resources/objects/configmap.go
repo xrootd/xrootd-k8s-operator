@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/pkg/errors"
 	"github.com/xrootd/xrootd-k8s-operator/apis/xrootd/v1alpha1"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils"
 	"github.com/xrootd/xrootd-k8s-operator/pkg/utils/constant"
@@ -26,7 +27,7 @@ func getConfigMapName(objectName types.ObjectName, suffix string) string {
 	return utils.SuffixName(string(objectName), suffix)
 }
 
-func scanDir(root string, tmplData interface{}) map[string]string {
+func scanDir(root string, tmplData interface{}) (map[string]string, error) {
 	log := rLog.WithName("scanDir")
 	files := map[string]string{}
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) (er error) {
@@ -39,9 +40,9 @@ func scanDir(root string, tmplData interface{}) map[string]string {
 		return
 	})
 	if err != nil {
-		log.Error(err, "Unable to apply template for", "root", root, "templateData", tmplData)
+		return nil, errors.Wrapf(err, "scanDir failed for '%s'", root)
 	}
-	return files
+	return files, nil
 }
 
 // GenerateContainerConfigMap generated configmap for given xrootd container
@@ -71,7 +72,11 @@ func GenerateContainerConfigMap(
 		panic(fmt.Errorf("error in getting absolute path, %v: %v", rootDir, err))
 	}
 	configDir := filepath.Join(rootPath, string(config), subpath)
-	data := scanDir(configDir, tmplData)
+	data, err := scanDir(configDir, tmplData)
+	if err != nil {
+		rLog.WithName("GenerateContainerConfigMap").Error(err, "Unable to apply template", "templateData", tmplData)
+		panic(err)
+	}
 	return v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
