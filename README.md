@@ -1,6 +1,8 @@
-# Xrootd Operator [![Xrootd operator CI](https://github.com/xrootd/xrootd-k8s-operator/workflows/Xrootd%20operator%20CI/badge.svg)](https://github.com/xrootd/xrootd-k8s-operator/actions?query=workflow%3A"Xrootd+operator+CI") [![Xrootd operator OLM](https://github.com/xrootd/xrootd-k8s-operator/workflows/Xrootd%20operator%20OLM/badge.svg)](https://github.com/xrootd/xrootd-k8s-operator/actions?query=workflow%3A"Xrootd+operator+OLM")
+# Xrootd Operator
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/xrootd/xrootd-k8s-operator)](https://goreportcard.com/report/github.com/xrootd/xrootd-k8s-operator) [![codecov](https://codecov.io/gh/xrootd/xrootd-k8s-operator/branch/master/graph/badge.svg)](https://codecov.io/gh/xrootd/xrootd-k8s-operator)
+[![Xrootd operator CI](https://github.com/xrootd/xrootd-k8s-operator/workflows/Xrootd%20operator%20CI/badge.svg)](https://github.com/xrootd/xrootd-k8s-operator/actions?query=workflow%3A"Xrootd+operator+CI") [![Xrootd operator OLM](https://github.com/xrootd/xrootd-k8s-operator/workflows/Xrootd%20operator%20OLM/badge.svg)](https://github.com/xrootd/xrootd-k8s-operator/actions?query=workflow%3A"Xrootd+operator+OLM") 
+<br />
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/xrootd/xrootd-k8s-operator)](https://github.com/xrootd/xrootd-k8s-operator/releases) [![Go Report Card](https://goreportcard.com/badge/github.com/xrootd/xrootd-k8s-operator)](https://goreportcard.com/report/github.com/xrootd/xrootd-k8s-operator) [![codecov](https://codecov.io/gh/xrootd/xrootd-k8s-operator/branch/master/graph/badge.svg)](https://codecov.io/gh/xrootd/xrootd-k8s-operator)
 
 A Kubernetes operator to deploy [Xrootd](https://github.com/xrootd/xrootd) at scale, in order to ease and fully automate deployment and management of XRootD clusters.
 
@@ -17,9 +19,21 @@ A Kubernetes operator to deploy [Xrootd](https://github.com/xrootd/xrootd) at sc
     - Or, [K3S](https://k3s.io/)
 - [Configure](https://success.docker.com/article/how-to-use-kubectl-to-manage-multiple-kubernetes-clusters) kubectl to use relevant K8S Cluster
 
-### Using OLM
+### Using OLM (Recommended)
 
-- TODO
+- Browse operatorhub.io and install [xrootd-operator](https://operatorhub.io/operator/xrootd-operator).
+- Click on the "Install" button and follow the instructions.
+
+### Using Deploy script (Alternative)
+
+- You can also install the operator using a release script, downloadable as an asset with each [release](https://github.com/xrootd/xrootd-k8s-operator/releases/latest).
+- Either:
+  - Download the script, `install.sh`, manually and run it in a shell.
+  - Run the script directly in bash:
+  ```bash
+  OP_VERSION=0.2.1 # specify the intended version here
+  bash <(curl -L https://github.com/xrootd/xrootd-k8s-operator/releases/download/$OP_VERSION/install.sh)
+  ```
 
 ---
 
