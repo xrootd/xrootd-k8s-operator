@@ -45,6 +45,7 @@ spec:
                 type: object
               version:
                 description: Version must be name of XrootdVersion CR instance which defines the xrootd protcol image to use in the cluster pods. The requested XrootdVersion instance must be installed in the target namespace using XrootdVersion CRD.
+                pattern: .+
                 type: string
               worker:
                 description: XrootdWorkerSpec defines the desired state of Xrootd workers
