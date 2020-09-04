@@ -9,7 +9,7 @@ on:
 jobs:
   build:
     name: Build & Deploy operator
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -26,6 +26,10 @@ jobs:
           version: "^1.0.0"
       - name: Setup KinD
         uses: engineerd/setup-kind@v0.4.0
+      - name: Setup kustomize
+        uses: imranismail/setup-kustomize@v1
+        with:
+          kustomize-version: "3.1.0"
       - name: Run Unit Tests
         run: make test
       - name: Push Coverage report to Codecov
