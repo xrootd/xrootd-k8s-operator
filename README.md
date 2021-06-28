@@ -15,7 +15,7 @@ A Kubernetes operator to deploy [Xrootd](https://github.com/xrootd/xrootd) at sc
 - Access to a Kubernetes cluster:
   - For production, use bare-metal clusters or public cloud platforms.
   - For development, use local K8S Cluster
-    - [Kind](https://kind.sigs.k8s.io/) - use a [simple script](https://github.com/k8s-school/kind-travis-ci/blob/master/k8s-create.sh)
+    - [Kind](https://kind.sigs.k8s.io/) - use a [simple script](https://github.com/k8s-school/kind-helper/blob/master/k8s-create.sh)
     - Or, [K3S](https://k3s.io/)
 - [Configure](https://success.docker.com/article/how-to-use-kubectl-to-manage-multiple-kubernetes-clusters) kubectl to use relevant K8S Cluster
 
